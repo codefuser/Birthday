@@ -158,20 +158,16 @@ export default function FinalMessage() {
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
 
       <motion.div className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(252,211,77,0.04) 0%, rgba(252,211,77,0.01) 30%, transparent 60%)' }}
-        animate={visible ? { opacity: [0.3, 0.6, 0.3] } : {}}
-        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-      />
-
-      <motion.div className="absolute inset-x-0 bottom-0 h-48 pointer-events-none"
-        style={{ background: 'linear-gradient(0deg, rgba(252,211,77,0.03) 0%, transparent 100%)' }}
+        style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(252,211,77,0.08) 0%, rgba(252,211,77,0.02) 30%, transparent 55%)' }}
+        animate={visible ? { opacity: [0.4, 0.7, 0.4] } : {}}
+        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
       />
 
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {bokehLights.map(b => (
           <div key={b.id} className="absolute rounded-full" style={{
             left: `${b.x}%`, top: `${b.y}%`, width: b.s, height: b.s,
-            background: `radial-gradient(circle, rgba(252,211,77,${0.03 + Math.random() * 0.04}), transparent)`,
+            background: `radial-gradient(circle, rgba(252,211,77,${0.015 + Math.random() * 0.025}), transparent)`,
             filter: 'blur(25px)',
           }}>
             <motion.div className="w-full h-full rounded-full"
@@ -185,23 +181,19 @@ export default function FinalMessage() {
         {[...Array(3)].map((_, i) => (
           <motion.div key={i} className="absolute top-0 w-px h-full" style={{
             left: `${20 + i * 30}%`,
-            background: `linear-gradient(180deg, transparent, rgba(252,211,77,${0.01 + i * 0.005}), transparent)`,
+            background: `linear-gradient(180deg, transparent, rgba(252,211,77,${0.005 + i * 0.003}), transparent)`,
             transform: 'rotateX(65deg)',
           }}
-            animate={{ opacity: [0.1, 0.3, 0.1], scaleY: [0.9, 1.1, 0.9] }}
+            animate={{ opacity: [0.05, 0.15, 0.05], scaleY: [0.9, 1.1, 0.9] }}
             transition={{ duration: 6 + i * 2, repeat: Infinity, ease: 'easeInOut' }} />
         ))}
       </div>
-
-      <div className="absolute inset-0 pointer-events-none" style={{
-        background: 'radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(8,6,26,0.4) 80%, rgba(8,6,26,0.6) 100%)',
-      }} />
 
       <AnimatePresence>
         {butterflies.map(b => (
           <motion.div key={b.id} className="absolute pointer-events-none z-20" style={{ top: `${b.y}%` }}
             initial={{ x: '-10vw', y: 0, opacity: 0, scale: 0.5 }}
-            animate={{ x: '110vw', y: [0, -30, -10, -40, -20, -35, 0], opacity: [0, 0.7, 0.5, 0.7, 0.4, 0.6, 0], scale: [0.5, 1, 0.9, 1.1, 0.8, 1, 0.5] }}
+            animate={{ x: '110vw', y: [0, -30, -10, -40, -20, -35, 0], opacity: [0, 0.45, 0.3, 0.45, 0.25, 0.35, 0], scale: [0.5, 1, 0.9, 1.1, 0.8, 1, 0.5] }}
             transition={{ duration: b.duration, delay: b.delay, ease: 'easeInOut' }}
           >
             <svg viewBox="0 0 30 20" className="w-6 h-4 md:w-8 md:h-5" style={{ transform: b.flip ? 'scaleX(-1)' : 'none' }}>
@@ -228,7 +220,7 @@ export default function FinalMessage() {
         {fireflies.map(f => (
           <motion.div key={f.id} className="absolute pointer-events-none z-10" style={{ left: `${f.x}%`, top: `${f.y}%` }}
             initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: [0, 0.6, 0.2, 0.8, 0], scale: [0, 1.2, 0.8, 1.5, 0], y: [0, -15, 5, -20, 0] }}
+            animate={{ opacity: [0, 0.35, 0.1, 0.5, 0], scale: [0, 1.2, 0.8, 1.5, 0], y: [0, -15, 5, -20, 0] }}
             transition={{ duration: 5, delay: f.delay, repeat: Infinity, ease: 'easeInOut' }}
           >
             <div className="w-2 h-2 rounded-full" style={{
@@ -251,11 +243,11 @@ export default function FinalMessage() {
           initial={{ opacity: 0, y: 50, scale: 0.97 }}
           animate={visible ? { opacity: 1, y: 0, scale: 1 } : {}}
           transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="relative w-full rounded-3xl border border-white/[0.06] p-8 md:p-12 text-center"
+          className="relative w-full rounded-3xl border border-white/[0.03] p-8 md:p-12 text-center"
           style={{
             background: 'linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))',
             backdropFilter: 'blur(24px)',
-            boxShadow: '0 8px 60px rgba(252,211,77,0.04), 0 2px 20px rgba(0,0,0,0.2)',
+            boxShadow: '0 0 80px rgba(252,211,77,0.06), 0 0 160px rgba(252,211,77,0.03)',
           }}
         >
           <div className="absolute -inset-px rounded-3xl pointer-events-none" style={{
