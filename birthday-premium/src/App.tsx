@@ -98,6 +98,23 @@ export default function App() {
   }, [])
 
   useEffect(() => {
+    const unlock = () => {
+      soundManager.unlock()
+      if (birthdayConfig.backgroundMusic) {
+        soundManager.playBGM(birthdayConfig.backgroundMusic)
+      }
+      document.removeEventListener('click', unlock)
+      document.removeEventListener('touchstart', unlock)
+    }
+    document.addEventListener('click', unlock)
+    document.addEventListener('touchstart', unlock)
+    return () => {
+      document.removeEventListener('click', unlock)
+      document.removeEventListener('touchstart', unlock)
+    }
+  }, [])
+
+  useEffect(() => {
     if (reducedMotion) return
 
     const lenisOptions = {
