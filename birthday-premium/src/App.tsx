@@ -6,8 +6,6 @@ import CakeSection from './components/sections/CakeSection'
 import MemoriesSection from './components/sections/MemoriesSection'
 import FriendshipTimeline from './components/sections/FriendshipTimeline'
 import GiftSection from './components/sections/GiftSection'
-import WishSection from './components/sections/WishSection'
-import CelebrationSection from './components/sections/CelebrationSection'
 import FinalMessage from './components/sections/FinalMessage'
 import CountdownSection from './components/sections/CountdownSection'
 import SectionWrapper from './components/ui/SectionWrapper'
@@ -145,8 +143,6 @@ export default function App() {
         <ErrorBoundary><MemoriesSection /></ErrorBoundary>
         <ErrorBoundary><FriendshipTimeline /></ErrorBoundary>
         <ErrorBoundary><GiftSection /></ErrorBoundary>
-        <ErrorBoundary><WishSection /></ErrorBoundary>
-        <ErrorBoundary><CelebrationSection /></ErrorBoundary>
         <ErrorBoundary><FinalMessage /></ErrorBoundary>
 
         <footer className="relative z-10 py-8 text-center bg-night-900 border-t border-white/5">
