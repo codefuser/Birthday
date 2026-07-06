@@ -29,61 +29,71 @@ function playHappyBirthday() {
   note(Bb4,6.8,.3);note(Bb4,7.1,.3);note(A4,7.4,.35);note(F4,7.75,.35);note(G4,8.1,.35);note(F4,8.45,.8)
 }
 
-function CakeTier({ bottomR, topR, height, yOffset, color }: { bottomR:number;topR:number;height:number;yOffset:number;color:string }) {
-  const points = useMemo(() => {
+function CakeTier({ bR, tR, h, yO, col }: { bR:number;tR:number;h:number;yO:number;col:string }) {
+  const pts = useMemo(() => {
     const p: THREE.Vector2[] = []
-    for (let i = 0; i <= 24; i++) { const t=i/24; p.push(new THREE.Vector2(bottomR+(topR-bottomR)*Math.pow(t,.6), t*height)) }
+    for (let i = 0; i <= 24; i++) { const t=i/24; p.push(new THREE.Vector2(bR+(tR-bR)*Math.pow(t,.7), t*h)) }
     return p
-  }, [bottomR, topR, height])
-  const geo = useMemo(() => new THREE.LatheGeometry(points, 48), [points])
+  }, [bR, tR, h])
+  const geo = useMemo(() => new THREE.LatheGeometry(pts, 48), [pts])
   return (
-    <group position={[0, yOffset, 0]}>
+    <group position={[0, yO, 0]}>
       <mesh geometry={geo} castShadow receiveShadow>
-        <meshPhysicalMaterial color={color} roughness={.35} metalness={.05} clearcoat={.15} clearcoatRoughness={.3} />
+        <meshPhysicalMaterial color={col} roughness={.35} metalness={.05} clearcoat={.15} clearcoatRoughness={.3} />
       </mesh>
     </group>
   )
 }
 
-function Rose({ position, scale=1 }: { position:[number,number,number]; scale?:number }) {
-  return (
-    <group position={position} scale={scale}>
-      {[0,60,120,180,240,300].map((a)=><mesh key={a} position={[0,.01,0]} rotation={[.2,0,a*Math.PI/180]}>
-        <sphereGeometry args={[.04,6,6]} /><meshPhysicalMaterial color="#f472b6" roughness={.3} clearcoat={.4} />
-      </mesh>)}
-      <mesh position={[0,.02,0]}><sphereGeometry args={[.025,6,6]} /><meshPhysicalMaterial color="#fcd34d" roughness={.2} clearcoat={.3} /></mesh>
-    </group>
-  )
+function CreamLayer({ r, y }: { r:number; y:number }) {
+  const pts = useMemo(() => {
+    const p: THREE.Vector2[] = []
+    for (let i = 0; i <= 12; i++) { const t=i/12; p.push(new THREE.Vector2(r*(1-t*.05), t*.06)) }
+    return p
+  }, [r])
+  const geo = useMemo(() => new THREE.LatheGeometry(pts, 32), [pts])
+  return <mesh position={[0, y, 0]} geometry={geo} receiveShadow>
+    <meshPhysicalMaterial color="#fdf2f8" roughness={.6} metalness={0} clearcoat={.05} />
+  </mesh>
 }
 
-function Pearl({ position }: { position:[number,number,number] }) {
-  return <mesh position={position}><sphereGeometry args={[.03,8,8]} /><meshPhysicalMaterial color="#fff" roughness={.1} metalness={.3} clearcoat={1} /></mesh>
+function Rose({ pos, sc=1 }: { pos:[number,number,number]; sc?:number }) {
+  return <group position={pos} scale={sc}>
+    {[0,60,120,180,240,300].map((a)=><mesh key={a} position={[0,.01,0]} rotation={[.2,0,a*Math.PI/180]}>
+      <sphereGeometry args={[.045,6,6]} /><meshPhysicalMaterial color="#f472b6" roughness={.3} clearcoat={.4} />
+    </mesh>)}
+    <mesh position={[0,.02,0]}><sphereGeometry args={[.028,6,6]} /><meshPhysicalMaterial color="#fcd34d" roughness={.2} clearcoat={.3} /></mesh>
+  </group>
 }
 
-function Sprinkles({ count=30, radius, yOffset }: { count:number; radius:number; yOffset:number }) {
-  const items = useMemo(() => Array.from({length:count},(_,i)=>({
-    a:Math.random()*Math.PI*2, r:radius*(.2+Math.random()*.7),
+function Pearl({ pos }: { pos:[number,number,number] }) {
+  return <mesh position={pos}><sphereGeometry args={[.035,10,10]} /><meshPhysicalMaterial color="#fff" roughness={.1} metalness={.4} clearcoat={1} /></mesh>
+}
+
+function Sprinkles({ cnt=30, r, y }: { cnt:number; r:number; y:number }) {
+  const items = useMemo(() => Array.from({length:cnt},(_,i)=>({
+    a:Math.random()*Math.PI*2, rad:r*(.2+Math.random()*.7),
     c:['#fcd34d','#f472b6','#a78bfa','#34d399','#60a5fa'][i%5]
-  })), [count,radius])
-  return <group>{items.map((it,i)=><mesh key={i} position={[Math.sin(it.a)*it.r, yOffset+Math.random()*.1-.05, Math.cos(it.a)*it.r]}
+  })), [cnt,r])
+  return <group>{items.map((it,i)=><mesh key={i} position={[Math.sin(it.a)*it.rad, y+Math.random()*.08-.04, Math.cos(it.a)*it.rad]}
     rotation={[Math.random()*Math.PI,Math.random()*Math.PI,0]}>
-    <boxGeometry args={[.03,.005,.008]} /><meshPhysicalMaterial color={it.c} roughness={.5} metalness={.1} />
+    <boxGeometry args={[.035,.005,.01]} /><meshPhysicalMaterial color={it.c} roughness={.5} metalness={.1} />
   </mesh>)}</group>
 }
 
-function CandleFlame({ blown, index }: { blown:boolean; index:number }) {
-  const meshRef=useRef<THREE.Mesh>(null!), glowRef=useRef<THREE.Mesh>(null!), time=useRef(Math.random()*100)
-  useFrame((_,d)=>{time.current+=d
-    if(meshRef.current&&!blown){
-      const f=Math.sin(time.current*18+index*3)*.15+Math.sin(time.current*11+index*7)*.1+Math.sin(time.current*7+index*2)*.08
-      meshRef.current.scale.x=1+f*.2;meshRef.current.scale.y=1+f*.25;meshRef.current.position.x=Math.sin(time.current*5+index*2)*.008
+function CandleFlame({ blown, idx }: { blown:boolean; idx:number }) {
+  const mr=useRef<THREE.Mesh>(null!), gr=useRef<THREE.Mesh>(null!), t=useRef(Math.random()*100)
+  useFrame((_,d)=>{t.current+=d
+    if(mr.current&&!blown){
+      const f=Math.sin(t.current*18+idx*3)*.15+Math.sin(t.current*11+idx*7)*.1+Math.sin(t.current*7+idx*2)*.08
+      mr.current.scale.x=1+f*.2;mr.current.scale.y=1+f*.25;mr.current.position.x=Math.sin(t.current*5+idx*2)*.008
     }
-    if(glowRef.current){const i=blown?0:.6+Math.sin(time.current*15)*.2;glowRef.current.scale.setScalar(.3+i*.4)}
+    if(gr.current){const i=blown?0:.6+Math.sin(t.current*15)*.2;gr.current.scale.setScalar(.3+i*.4)}
   })
   return <group>
-    <mesh ref={meshRef} position={[0,.22,0]}><coneGeometry args={[.025,.07,8]} />
+    <mesh ref={mr} position={[0,.22,0]}><coneGeometry args={[.025,.07,8]} />
       <meshPhysicalMaterial color="#fcd34d" emissive="#f97316" emissiveIntensity={blown?0:2} transparent opacity={blown?0:1} /></mesh>
-    <mesh ref={glowRef} position={[0,.18,0]}><sphereGeometry args={[.04,8,8]} />
+    <mesh ref={gr} position={[0,.18,0]}><sphereGeometry args={[.04,8,8]} />
       <meshBasicMaterial color="#fcd34d" transparent opacity={blown?0:.35} /></mesh>
   </group>
 }
@@ -91,87 +101,90 @@ function CandleFlame({ blown, index }: { blown:boolean; index:number }) {
 function FloatingRose() {
   const ref=useRef<THREE.Group>(null!)
   useFrame((s)=>{if(ref.current){ref.current.position.y=-1.2+Math.sin(s.clock.elapsedTime*.3)*.05;ref.current.rotation.y=s.clock.elapsedTime*.02}})
-  return <group ref={ref}><Rose position={[0,0,0]} scale={1.5} /></group>
+  return <group ref={ref}><Rose pos={[0,0,0]} sc={1.5} /></group>
 }
 
 function PremiumCake3D({blown,onBlow,onSongPlay,playing,detecting}:{blown:boolean;onBlow:()=>void;onSongPlay:()=>void;playing:boolean;detecting:boolean}) {
-  const groupRef=useRef<THREE.Group>(null!)
-  const controlsRef=useRef<any>(null!)
-  const candlePositions=useMemo(()=>[0,72,144,216,288].map((a)=>{const r=a*Math.PI/180;return [Math.sin(r)*.4,Math.cos(r)*.4] as [number,number]}),[])
+  const grp=useRef<THREE.Group>(null!), ctrl=useRef<any>(null!)
+  const cpos=useMemo(()=>[0,72,144,216,288].map((a)=>{const r=a*Math.PI/180;return [Math.sin(r)*.42,Math.cos(r)*.42] as [number,number]}),[])
 
   useFrame((s)=>{
-    if(!groupRef.current||!controlsRef.current)return
+    if(!grp.current||!ctrl.current)return
     const el=document.getElementById('cake');if(!el)return
     const rect=el.getBoundingClientRect()
-    const progress=Math.max(0,Math.min(1,1-rect.top/window.innerHeight))
-    const scaleVal=.25+progress*.75
-    groupRef.current.scale.setScalar(scaleVal)
-    if(!controlsRef.current.isDragging){groupRef.current.rotation.y+=s.clock.getDelta()*.12}
-    if(!blown){groupRef.current.position.y=-.9+Math.sin(s.clock.elapsedTime*.4)*.025}
+    const prog=Math.max(0,Math.min(1,1-rect.top/window.innerHeight))
+    grp.current.scale.setScalar(.25+prog*.75)
+    if(!ctrl.current.isDragging)grp.current.rotation.y+=s.clock.getDelta()*.12
+    if(!blown)grp.current.position.y=-.9+Math.sin(s.clock.elapsedTime*.4)*.025
   })
 
-  const handleClick=useCallback((e:any)=>{e.stopPropagation();onSongPlay()},[onSongPlay])
+  const hc=useCallback((e:any)=>{e.stopPropagation();onSongPlay()},[onSongPlay])
 
   return <group>
     <mesh position={[0,-1.8,0]} rotation={[-Math.PI/2,0,0]} receiveShadow>
       <circleGeometry args={[2.5,48]} />
-      <meshPhysicalMaterial color="#1a1a2e" roughness={.9} metalness={0} transparent opacity={.15} />
+      <meshPhysicalMaterial color="#1a1a2e" roughness={.9} metalness={0} transparent opacity={.12} />
     </mesh>
 
-    <group ref={groupRef} position={[0,-.9,0]}>
-      <OrbitControls ref={controlsRef} enablePan={false} enableZoom={true}
+    <group ref={grp} position={[0,-.9,0]}>
+      <OrbitControls ref={ctrl} enablePan={false} enableZoom={true}
         minPolarAngle={Math.PI/4} maxPolarAngle={Math.PI/2.2} rotateSpeed={.5} />
 
-      <group position={[0,-.25,0]}>
-        <mesh position={[0,-.02,0]} rotation={[-Math.PI/2,0,0]}>
-          <ringGeometry args={[.95,1.6,48]} />
+      <group position={[0,-.3,0]}>
+        <mesh position={[0,-.015,0]} rotation={[-Math.PI/2,0,0]}>
+          <ringGeometry args={[.9,1.7,48]} />
           <meshPhysicalMaterial color="#e2e8f0" roughness={.3} metalness={.2} clearcoat={.5} />
         </mesh>
         <mesh position={[0,0,0]} rotation={[-Math.PI/2,0,0]}>
-          <ringGeometry args={[.82,1.0,48]} />
+          <ringGeometry args={[.78,1.0,48]} />
           <meshPhysicalMaterial color="#cbd5e1" roughness={.2} metalness={.4} clearcoat={.6} />
         </mesh>
       </group>
 
-      <CakeTier bottomR={.95} topR={.88} height={.28} yOffset={-.15} color="#fbcfe8" />
-      <Sprinkles count={20} radius={.8} yOffset={.12} />
-      <CakeTier bottomR={.8} topR={.74} height={.26} yOffset={.13} color="#f9a8d4" />
-      <Sprinkles count={18} radius={.68} yOffset={.38} />
-      <CakeTier bottomR={.65} topR={.6} height={.24} yOffset={.39} color="#f472b6" />
+      <CakeTier bR={1.0} tR={.93} h={.32} yO={-.15} col="#fce7f3" />
+      <CreamLayer r={.93} y={.17} />
+      <Sprinkles cnt={22} r={.88} y={.08} />
 
-      <Rose position={[.3,-.13,.52]} scale={1.1} />
-      <Rose position={[-.35,-.15,-.38]} scale={.95} />
-      <Rose position={[.18,.16,.55]} scale={1.05} />
-      <Rose position={[-.28,.17,-.48]} scale={.85} />
-      <Rose position={[.47,.62,-.25]} scale={1} />
-      <Rose position={[-.47,.63,.18]} scale={1.05} />
-      <FloatingRose />
+      <CakeTier bR={.88} tR={.82} h={.28} yO={.2} col="#fbcfe8" />
+      <CreamLayer r={.82} y={.48} />
+      <Sprinkles cnt={18} r={.77} y={.34} />
 
-      <Pearl position={[.32,-.12,-.52]} />
-      <Pearl position={[-.32,-.14,.52]} />
-      <Pearl position={[.48,-.13,0]} />
-      <Pearl position={[-.48,-.15,0]} />
-      <Pearl position={[.52,.15,0]} />
-      <Pearl position={[-.52,.16,0]} />
-      <Pearl position={[0,.63,.52]} />
-      <Pearl position={[0,.63,-.52]} />
+      <CakeTier bR={.76} tR={.7} h={.24} yO={.52} col="#f9a8d4" />
 
-      {candlePositions.map(([x,z],i)=><group key={i} position={[x,.63,z]}>
-        <mesh position={[0,0,0]}><cylinderGeometry args={[.018,.022,.22,8]} /><meshPhysicalMaterial color="#fff" roughness={.3} metalness={.1} /></mesh>
-        <mesh position={[0,.01,0]}><cylinderGeometry args={[.024,.02,.015,8]} /><meshPhysicalMaterial color="#fcd34d" emissive="#fcd34d" emissiveIntensity={.2} /></mesh>
-        <CandleFlame blown={blown} index={i} />
+      <CreamLayer r={.7} y={.76} />
+      <Sprinkles cnt={14} r={.65} y={.64} />
+
+      {cpos.map(([x,z],i)=><group key={i} position={[x,.76,z]}>
+        <mesh position={[0,0,0]}><cylinderGeometry args={[.018,.022,.22,8]} /><meshPhysicalMaterial color="#fef3c7" roughness={.3} metalness={.1} /></mesh>
+        <mesh position={[0,.01,0]}><cylinderGeometry args={[.025,.02,.015,8]} /><meshPhysicalMaterial color="#fcd34d" emissive="#fcd34d" emissiveIntensity={.2} /></mesh>
+        <CandleFlame blown={blown} idx={i} />
       </group>)}
 
-      <mesh position={[0,.62,0]} rotation={[-Math.PI/2,0,0]}>
-        <ringGeometry args={[.48,.57,32]} />
+      <mesh position={[0,.76,0]} rotation={[-Math.PI/2,0,0]}>
+        <ringGeometry args={[.52,.62,32]} />
         <meshPhysicalMaterial color="#fce7f3" roughness={.5} transparent opacity={.3} />
       </mesh>
 
-      <mesh onClick={handleClick} visible={false}>
-        <boxGeometry args={[1.5,2.5,1.5]} />
-      </mesh>
+      <Rose pos={[.38,-.05,.55]} sc={1.2} />
+      <Rose pos={[-.42,-.07,-.4]} sc={1} />
+      <Rose pos={[.22,.28,.58]} sc={1.1} />
+      <Rose pos={[-.32,.26,-.5]} sc={.9} />
+      <Rose pos={[.5,.68,-.25]} sc={1} />
+      <Rose pos={[-.5,.7,.2]} sc={1.05} />
+      <FloatingRose />
 
-      {detecting&&!blown&&Array.from({length:15}).map((_,i)=><mesh key={i} position={[(Math.random()-.5)*.2,.6+Math.random()*.4,.7]}>
+      <Pearl pos={[.4,-.04,-.55]} />
+      <Pearl pos={[-.4,-.06,.55]} />
+      <Pearl pos={[.55,-.05,0]} />
+      <Pearl pos={[-.55,-.07,0]} />
+      <Pearl pos={[.58,.25,0]} />
+      <Pearl pos={[-.58,.26,0]} />
+      <Pearl pos={[0,.8,.55]} />
+      <Pearl pos={[0,.8,-.55]} />
+
+      <mesh onClick={hc} visible={false}><boxGeometry args={[1.5,2.5,1.5]} /></mesh>
+
+      {detecting&&!blown&&Array.from({length:15}).map((_,i)=><mesh key={i} position={[(Math.random()-.5)*.2,.7+Math.random()*.4,.7]}>
         <sphereGeometry args={[.006+Math.random()*.008,4,4]} /><meshBasicMaterial color="#e2e8f0" transparent opacity={.4} /></mesh>)}
     </group>
   </group>
@@ -201,40 +214,40 @@ function SongButton({onClick,playing}:{onClick:()=>void;playing:boolean}) {
 }
 
 export default function CakeSection() {
-  const reducedMotion=useReducedMotion()
+  const rm=useReducedMotion()
   const[blown,setBlown]=useState(false);const[detecting,setDetecting]=useState(false)
-  const[showConfetti,setShowConfetti]=useState(false);const[playing,setPlaying]=useState(false)
+  const[sc,setSc]=useState(false);const[playing,setPlaying]=useState(false)
 
-  const handleBlow=useCallback(()=>{
+  const hb=useCallback(()=>{
     if(blown)return;setBlown(true);setDetecting(false)
     if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null}
-    setTimeout(()=>{setShowConfetti(true);soundManager.playCelebration()},400)
+    setTimeout(()=>{setSc(true);soundManager.playCelebration()},400)
   },[blown])
 
-  const startBlow=useCallback(async()=>{
+  const sb=useCallback(async()=>{
     if(blown||detecting)return;setDetecting(true)
     try{
       const stream=await navigator.mediaDevices.getUserMedia({audio:true});micStream=stream
       const AC=window.AudioContext||(window as unknown as Record<string, typeof AudioContext>).webkitAudioContext
-      if(!AC){handleBlow();return}
-      const ctx=new AC();const source=ctx.createMediaStreamSource(stream);const analyser=ctx.createAnalyser()
-      analyser.fftSize=256;source.connect(analyser)
-      const data=new Uint8Array(analyser.frequencyBinCount)
-      let timeout=setTimeout(()=>handleBlow(),8000);let stopped=false
-      const check=()=>{if(stopped||blown)return;analyser.getByteTimeDomainData(data)
-        let sum=0;for(let i=0;i<data.length;i++)sum+=Math.abs(data[i]-128)/128
-        if(sum/data.length>.1){clearTimeout(timeout);handleBlow();return}
-        requestAnimationFrame(check)}
-      check()
-      return()=>{stopped=true;clearTimeout(timeout)}
-    }catch{handleBlow()}
-  },[blown,detecting,handleBlow])
+      if(!AC){hb();return}
+      const ctx=new AC();const source=ctx.createMediaStreamSource(stream);const an=ctx.createAnalyser()
+      an.fftSize=256;source.connect(an)
+      const d=new Uint8Array(an.frequencyBinCount)
+      let to=setTimeout(()=>hb(),8000);let st=false
+      const ck=()=>{if(st||blown)return;an.getByteTimeDomainData(d)
+        let s=0;for(let i=0;i<d.length;i++)s+=Math.abs(d[i]-128)/128
+        if(s/d.length>.1){clearTimeout(to);hb();return}
+        requestAnimationFrame(ck)}
+      ck()
+      return()=>{st=true;clearTimeout(to)}
+    }catch{hb()}
+  },[blown,detecting,hb])
 
-  const handleSongPlay=useCallback(()=>{if(playing)return;setPlaying(true);playHappyBirthday();setTimeout(()=>setPlaying(false),10000)},[playing])
+  const hs=useCallback(()=>{if(playing)return;setPlaying(true);playHappyBirthday();setTimeout(()=>setPlaying(false),10000)},[playing])
 
   useEffect(()=>(()=>{if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null}}),[])
 
-  if(reducedMotion)return<SectionWrapper className="bg-rose-garden min-h-[100dvh] relative" id="cake" transitionType="portal">
+  if(rm)return<SectionWrapper className="bg-rose-garden min-h-[100dvh] relative" id="cake" transitionType="portal">
     <div className="text-center"><AnimatedText text="Make a Wish" className="text-4xl md:text-6xl font-heading text-rose-200 mb-4 text-center" />
     <p className="text-rose-100/40 font-sans tracking-widest uppercase text-sm">Blow the candles</p>
     <div className="mt-12 text-white/30 font-script text-2xl">May all your wishes come true</div></div>
@@ -260,25 +273,25 @@ export default function CakeSection() {
         <Suspense fallback={<div className="w-full h-full flex flex-col items-center justify-center gap-3">
           <div className="w-8 h-8 border border-rose-300/30 border-t-rose-300 rounded-full animate-spin" />
           <span className="text-white/20 text-xs font-sans tracking-widest uppercase">Baking your cake...</span></div>}>
-          <Canvas shadows camera={{position:[0,-.2,3.8],fov:36}}
+          <Canvas shadows camera={{position:[0,-.2,3.5],fov:34}}
             gl={{antialias:true,toneMapping:THREE.ACESFilmicToneMapping,toneMappingExposure:1.2}}>
-            <ambientLight intensity={.15} />
-            <hemisphereLight args={['#fce7f3','#1a1a2e',.3]} />
-            <directionalLight position={[2,4,3]} intensity={.6} castShadow />
-            <pointLight position={[-2,2,3]} intensity={.2} color="#fcd34d" />
-            <pointLight position={[0,3,-1]} intensity={.15} color="#f472b6" />
-            <spotLight position={[0,5,3]} angle={.3} penumbra={.8} intensity={.3} castShadow />
-            <PremiumCake3D blown={blown} onBlow={handleBlow} onSongPlay={handleSongPlay} playing={playing} detecting={detecting} />
+            <ambientLight intensity={.18} />
+            <hemisphereLight args={['#fce7f3','#1a1a2e',.35]} />
+            <directionalLight position={[2,4,3]} intensity={.7} castShadow />
+            <pointLight position={[-2,2,3]} intensity={.25} color="#fcd34d" />
+            <pointLight position={[0,3,-1]} intensity={.2} color="#f472b6" />
+            <spotLight position={[0,5,3]} angle={.3} penumbra={.8} intensity={.4} castShadow />
+            <PremiumCake3D blown={blown} onBlow={hb} onSongPlay={hs} playing={playing} detecting={detecting} />
           </Canvas>
         </Suspense>
 
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3">
-          <MicButton onClick={startBlow} disabled={blown} detecting={detecting} />
-          <SongButton onClick={handleSongPlay} playing={playing} />
+          <MicButton onClick={sb} disabled={blown} detecting={detecting} />
+          <SongButton onClick={hs} playing={playing} />
         </div>
       </div>
 
-      {showConfetti&&<motion.div
+      {sc&&<motion.div
         initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:.2}}
         className="relative z-10 text-center mt-5">
         <p className="text-rose-200/70 font-script text-2xl mb-2">Your wish has been made...</p>
