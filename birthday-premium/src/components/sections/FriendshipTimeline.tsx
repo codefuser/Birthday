@@ -44,7 +44,7 @@ export default function FriendshipTimeline() {
       <div ref={trackRef} className="relative w-full max-w-4xl mx-auto">
         <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-emerald-400/20 to-transparent hidden md:block" />
 
-        <div className="space-y-16">
+        <div className="space-y-12 md:space-y-16">
           {timelineEvents.map((event, i) => {
             const isLeft = i % 2 === 0
             return (

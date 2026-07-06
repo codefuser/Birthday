@@ -243,7 +243,7 @@ export default function HeroSection() {
               padding: '1px',
             }} />
 
-            <p className="text-[10px] tracking-[0.35em] uppercase text-white/25 font-sans font-light mb-3">
+            <p className="text-[clamp(8px,1.5vw,10px)] tracking-[0.35em] uppercase text-white/25 font-sans font-light mb-3">
               Celebrating Life Since
             </p>
 
@@ -253,12 +253,12 @@ export default function HeroSection() {
 
             <div className="w-full h-px mb-5" style={{ background: 'linear-gradient(90deg, transparent, rgba(252,211,77,0.08), transparent)' }} />
 
-            <p className="text-[10px] tracking-[0.35em] uppercase text-white/20 font-sans font-light mb-5">
+            <p className="text-[clamp(8px,1.5vw,10px)] tracking-[0.35em] uppercase text-white/20 font-sans font-light mb-5">
               Age Today
             </p>
 
-            <div className="flex items-start justify-center gap-2 md:gap-6 mb-5">
-              <div className="text-center flex-1 min-w-0">
+            <div className="grid grid-cols-3 gap-2 md:gap-3 mb-5">
+              <div className="text-center">
                 <motion.span
                   key={age.years}
                   initial={{ opacity: 0, y: -12 }}
@@ -268,9 +268,9 @@ export default function HeroSection() {
                 >
                   {age.years}
                 </motion.span>
-                <span className="block text-[10px] tracking-[0.3em] uppercase text-white/25 font-sans font-light mt-2">Years</span>
+                <span className="block text-[clamp(8px,2vw,10px)] tracking-[0.3em] uppercase text-white/25 font-sans font-light mt-2">Years</span>
               </div>
-              <div className="text-center flex-1 min-w-0">
+              <div className="text-center">
                 <motion.span
                   key={`tm-${age.totalMonths}`}
                   initial={{ opacity: 0, y: -8 }}
@@ -280,9 +280,9 @@ export default function HeroSection() {
                 >
                   {age.totalMonths.toLocaleString()}
                 </motion.span>
-                <span className="block text-[10px] tracking-[0.3em] uppercase text-white/20 font-sans font-light mt-2">Months</span>
+                <span className="block text-[clamp(8px,2vw,10px)] tracking-[0.3em] uppercase text-white/20 font-sans font-light mt-2">Months</span>
               </div>
-              <div className="text-center flex-1 min-w-0">
+              <div className="text-center">
                 <motion.span
                   key={`td-${age.totalDays}`}
                   initial={{ opacity: 0, y: -8 }}
@@ -292,7 +292,7 @@ export default function HeroSection() {
                 >
                   {age.totalDays.toLocaleString()}
                 </motion.span>
-                <span className="block text-[10px] tracking-[0.3em] uppercase text-white/20 font-sans font-light mt-2">Days</span>
+                <span className="block text-[clamp(8px,2vw,10px)] tracking-[0.3em] uppercase text-white/20 font-sans font-light mt-2">Days</span>
               </div>
             </div>
 
@@ -308,7 +308,7 @@ export default function HeroSection() {
                 >
                   {age.totalHours.toLocaleString()}
                 </motion.span>
-                <span className="block text-[10px] tracking-[0.25em] uppercase text-white/15 font-sans font-light mt-1.5">Hours</span>
+                <span className="block text-[clamp(8px,1.5vw,10px)] tracking-[0.25em] uppercase text-white/15 font-sans font-light mt-1.5">Hours</span>
               </div>
               <div className="min-w-0">
                 <motion.span
@@ -319,7 +319,7 @@ export default function HeroSection() {
                 >
                   {age.totalMinutes.toLocaleString()}
                 </motion.span>
-                <span className="block text-[10px] tracking-[0.25em] uppercase text-white/15 font-sans font-light mt-1.5">Minutes</span>
+                <span className="block text-[clamp(8px,1.5vw,10px)] tracking-[0.25em] uppercase text-white/15 font-sans font-light mt-1.5">Minutes</span>
               </div>
               <div className="min-w-0">
                 <motion.span
@@ -330,7 +330,7 @@ export default function HeroSection() {
                 >
                   {age.totalSeconds.toLocaleString()}
                 </motion.span>
-                <span className="block text-[10px] tracking-[0.25em] uppercase text-white/15 font-sans font-light mt-1.5">Seconds</span>
+                <span className="block text-[clamp(8px,1.5vw,10px)] tracking-[0.25em] uppercase text-white/15 font-sans font-light mt-1.5">Seconds</span>
               </div>
             </div>
           </div>
@@ -338,7 +338,7 @@ export default function HeroSection() {
       </div>
 
       <div ref={scrollHintRef} className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
-        <span className="text-[10px] tracking-[0.3em] uppercase text-white/20 font-sans">Scroll</span>
+        <span className="text-[clamp(8px,1.5vw,10px)] tracking-[0.3em] uppercase text-white/20 font-sans">Scroll</span>
         <svg width="16" height="24" viewBox="0 0 16 24" fill="none" className="text-white/30">
           <rect x="1.5" y="1.5" width="13" height="21" rx="6.5" stroke="currentColor" strokeWidth="1.5" />
           <circle cx="8" cy="8" r="2" fill="currentColor">

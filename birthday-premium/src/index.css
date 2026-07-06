@@ -35,10 +35,20 @@ html.lenis { scroll-behavior: auto; }
 html { scrollbar-width: none; -ms-overflow-style: none; }
 html::-webkit-scrollbar { display: none; }
 
+html { font-size: clamp(14px, 1vw + 12px, 16px); }
+@media (max-width: 374px) { html { font-size: 13px; } }
+
 body {
   background: #0a0a1a;
   color: #faf9f5;
   overflow-x: hidden;
+}
+
+img { max-width: 100%; height: auto; }
+
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
 }
 
 * {

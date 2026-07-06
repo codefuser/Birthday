@@ -317,10 +317,10 @@ export default function FinalMessage() {
               initial={{ opacity: 0, y: 10 }}
               animate={visible ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.8, delay: 0.3 }}
-              className="text-xs text-white/20 font-sans tracking-wider mb-4"
+              className="text-[clamp(10px,2vw,13px)] text-white/20 font-sans tracking-wider mb-4 px-2"
               style={{ transform: 'translateZ(30px)' }}
             >
-              {age.years} Years · {age.totalMonths} Total Months · {age.totalDays} Total Days
+              {age.years}Y · {age.totalMonths}M · {age.totalDays}D
             </motion.p>
 
             <motion.div
@@ -391,7 +391,7 @@ export default function FinalMessage() {
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, ease: 'easeOut' }}
-                  className="text-[10px] md:text-xs text-white/15 font-sans tracking-wider mt-4"
+                  className="text-[clamp(8px,1.5vw,12px)] text-white/15 font-sans tracking-wider mt-4"
                   style={{ transform: 'translateZ(30px)' }}
                 >
                   Made with <span className="text-rose-400/40">❤</span> especially for MS

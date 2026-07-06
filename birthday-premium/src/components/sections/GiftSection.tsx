@@ -206,7 +206,7 @@ function GiftBox({
           </AnimatePresence>
         </div>
 
-        <span className="text-[10px] tracking-widest uppercase block text-center mt-3" style={{ color: `${gift.color}aa` }}>
+        <span className="text-[clamp(8px,1.5vw,10px)] tracking-widest uppercase block text-center mt-3" style={{ color: `${gift.color}aa` }}>
           {gift.title}
         </span>
       </motion.button>
