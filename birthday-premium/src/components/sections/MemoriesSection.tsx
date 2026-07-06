@@ -3,25 +3,142 @@ import { motion, AnimatePresence } from 'framer-motion'
 import SectionWrapper from '../ui/SectionWrapper'
 import AnimatedText from '../ui/AnimatedText'
 import { Swiper, SwiperSlide } from 'swiper/react'
-import { EffectCoverflow, Autoplay, Pagination, FreeMode } from 'swiper/modules'
+import { Autoplay, Pagination } from 'swiper/modules'
 import 'swiper/css'
-import 'swiper/css/effect-coverflow'
 import 'swiper/css/pagination'
-import 'swiper/css/free-mode'
 import { birthdayConfig } from '../../config/birthday'
 import { CrownIcon, FlowerIcon, ButterflyIcon } from '../ui/PremiumIcons'
 
 type GalleryMode = 'coverflow' | 'polaroid' | 'masonry' | 'cards3d' | 'stack' | 'glass' | 'timeline'
 
-const galleryModes: { mode: GalleryMode; label: string; icon: string }[] = [
-  { mode: 'coverflow', label: 'Cover Flow', icon: 'M' },
-  { mode: 'polaroid', label: 'Polaroids', icon: 'P' },
-  { mode: 'masonry', label: 'Masonry', icon: 'W' },
-  { mode: 'cards3d', label: '3D Cards', icon: '3' },
-  { mode: 'stack', label: 'Stack', icon: 'S' },
-  { mode: 'glass', label: 'Glass', icon: 'G' },
-  { mode: 'timeline', label: 'Timeline', icon: 'T' },
+const galleryModes: { mode: GalleryMode; label: string }[] = [
+  { mode: 'coverflow', label: 'Cover Flow' },
+  { mode: 'polaroid', label: 'Polaroids' },
+  { mode: 'masonry', label: 'Masonry' },
+  { mode: 'cards3d', label: '3D Cards' },
+  { mode: 'stack', label: 'Stack' },
+  { mode: 'glass', label: 'Glass' },
+  { mode: 'timeline', label: 'Timeline' },
 ]
+
+function CoverFlowCarousel({ images, onSelect }: { images: string[]; onSelect: (src: string) => void }) {
+  const [current, setCurrent] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const [isHovering, setIsHovering] = useState(false)
+  const dragStart = useRef(0)
+  const [isDesktop, setIsDesktop] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)')
+    setIsDesktop(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+
+  useEffect(() => {
+    if (isDragging || isHovering) return
+    const interval = setInterval(() => setCurrent(c => c + 1), 3500)
+    return () => clearInterval(interval)
+  }, [isDragging, isHovering])
+
+  const goTo = (i: number) => setCurrent(i)
+  const next = () => goTo(current + 1)
+  const prev = () => goTo(current - 1)
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') prev()
+      if (e.key === 'ArrowRight') next()
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [current])
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    setIsDragging(true)
+    dragStart.current = e.clientX
+  }
+
+  const onPointerUp = (e: React.PointerEvent) => {
+    if (!isDragging) return
+    const diff = e.clientX - dragStart.current
+    if (Math.abs(diff) > 50) diff > 0 ? prev() : next()
+    setIsDragging(false)
+  }
+
+  const cw = isDesktop ? 300 : 240
+  const ch = isDesktop ? 560 : 440
+
+  return (
+    <div
+      className="relative w-full select-none overflow-hidden"
+      style={{ perspective: '1400px', height: `${ch + 140}px` }}
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+      onPointerLeave={() => setIsDragging(false)}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+    >
+      <button
+        onClick={prev}
+        className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/[0.04] backdrop-blur border border-white/10 flex items-center justify-center text-white/30 hover:text-white hover:bg-white/10 transition-all duration-300 text-xl md:text-2xl"
+      >
+        ‹
+      </button>
+      <button
+        onClick={next}
+        className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/[0.04] backdrop-blur border border-white/10 flex items-center justify-center text-white/30 hover:text-white hover:bg-white/10 transition-all duration-300 text-xl md:text-2xl"
+      >
+        ›
+      </button>
+
+      <div className="absolute inset-0 flex items-center justify-center" style={{ transformStyle: 'preserve-3d' }}>
+        {images.map((src, i) => {
+          const n = images.length
+          const cd = ((current % n) + n) % n
+          let offset = i - cd
+          if (offset > n / 2) offset -= n
+          if (offset < -n / 2) offset += n
+          const abs = Math.abs(offset)
+
+          const x = offset * cw * 0.55
+          const z = -abs * 100
+          const rY = offset * -30
+          const s = 1 - abs * 0.12
+          const o = abs > 3 ? 0 : offset === 0 ? 1 : Math.max(0.15, 1 - abs * 0.35)
+
+          return (
+            <div
+              key={i}
+              onClick={() => onSelect(src)}
+              className="absolute cursor-pointer transition-all duration-500 ease-out will-change-transform"
+              style={{
+                width: cw,
+                height: ch,
+                transform: `translateX(${x}px) translateZ(${z}px) rotateY(${rY}deg) scale(${Math.max(s, 0.4)})`,
+                opacity: o,
+                zIndex: 1000 - abs,
+                transformStyle: 'preserve-3d',
+              }}
+            >
+              <div className="w-full h-full rounded-2xl overflow-hidden border border-white/[0.07] bg-black/40 shadow-2xl">
+                <img
+                  src={src}
+                  alt={`Memory ${i + 1}`}
+                  className="w-full h-full object-contain"
+                  draggable={false}
+                  loading={abs < 3 ? 'eager' : 'lazy'}
+                />
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 
 function PolaroidCard({ src, index, onClick }: { src: string; index: number; onClick: () => void }) {
   const rotation = (Math.random() - 0.5) * 12
@@ -154,27 +271,7 @@ export default function MemoriesSection() {
       ) : (
         <div className="w-full max-w-6xl mx-auto">
           {galleryMode === 'coverflow' && (
-            <Swiper
-              effect="coverflow"
-              grabCursor centeredSlides slidesPerView="auto"
-              coverflowEffect={{ rotate: 40, stretch: 0, depth: 120, modifier: 1.2, slideShadows: true }}
-              autoplay={{ delay: 3000, disableOnInteraction: false }}
-              pagination={{ clickable: true }}
-              modules={[EffectCoverflow, Autoplay, Pagination]}
-              className="w-full py-10 [&_.swiper-pagination-bullet]:bg-white/30 [&_.swiper-pagination-bullet-active]:bg-rose-400"
-            >
-              {images.map((src, i) => (
-                <SwiperSlide key={i} className="w-[280px] md:w-[340px]">
-                  <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-white/5 backdrop-blur-sm group cursor-pointer"
-                    onClick={() => setSelectedImage(src)}>
-                    <img src={src} alt={`Memory ${i + 1}`} className="w-full h-72 md:h-80 object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-4">
-                      <span className="text-white/70 text-sm font-sans tracking-wider">Memory {i + 1}</span>
-                    </div>
-                  </div>
-                </SwiperSlide>
-              ))}
-            </Swiper>
+            <CoverFlowCarousel images={images} onSelect={setSelectedImage} />
           )}
 
           {galleryMode === 'polaroid' && (
