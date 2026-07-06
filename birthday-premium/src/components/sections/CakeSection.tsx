@@ -1,6 +1,6 @@
 import { useRef, useState, Suspense, useMemo, useCallback, useEffect } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { OrbitControls, Text3D } from '@react-three/drei'
+import { OrbitControls } from '@react-three/drei'
 import { motion } from 'framer-motion'
 import * as THREE from 'three'
 import SectionWrapper from '../ui/SectionWrapper'
@@ -32,41 +32,35 @@ function playHappyBirthday() {
 }
 
 function CakeTier({ bR, tR, h, yO, col }: { bR:number;tR:number;h:number;yO:number;col:string }) {
-  const pts = useMemo(() => {
-    const p: THREE.Vector2[] = []
-    for (let i = 0; i <= 24; i++) { const t=i/24; p.push(new THREE.Vector2(bR+(tR-bR)*Math.pow(t,.7), t*h)) }
-    return p
-  }, [bR, tR, h])
-  return <mesh position={[0, yO, 0]} geometry={useMemo(()=>new THREE.LatheGeometry(pts, 48), [pts])} castShadow receiveShadow>
-    <meshPhysicalMaterial color={col} roughness={.35} metalness={.05} clearcoat={.15} clearcoatRoughness={.3} />
+  const midR = (bR + tR) / 2
+  return <mesh position={[0, yO + h/2, 0]} castShadow receiveShadow>
+    <cylinderGeometry args={[tR, bR, h, 32]} />
+    <meshPhysicalMaterial color={col} roughness={.35} metalness={.05} clearcoat={.15} />
   </mesh>
 }
 
 function CreamRing({ r, y }: { r:number; y:number }) {
-  const pts = useMemo(() => {
-    const p: THREE.Vector2[] = []
-    for (let i = 0; i <= 12; i++) { const t=i/12; p.push(new THREE.Vector2(r*(1+t*.03-t*.06), t*.04)) }
-    return p
-  }, [r])
-  return <mesh position={[0, y, 0]} geometry={useMemo(()=>new THREE.LatheGeometry(pts, 32), [pts])} receiveShadow>
+  return <mesh position={[0, y + .02, 0]} receiveShadow>
+    <torusGeometry args={[r, .025, 8, 32]} />
     <meshPhysicalMaterial color="#fdf2f8" roughness={.6} metalness={0} clearcoat={.05} />
   </mesh>
 }
 
-function CakeTopper() {
-  return <group position={[0,.685,0]}>
-    <Text3D font="https://threejs.org/examples/fonts/helvetiker_bold.typeface.json"
-      size={.085} height={.02} curveRadius={.3}
-      bevelEnabled bevelSize={.003} bevelThickness={.008} bevelSegments={8}
-      anchorX="center" anchorY="middle">
-      MS
-      <meshPhysicalMaterial color="#fcd34d" metalness={.9} roughness={.1}
-        clearcoat={.4} clearcoatRoughness={.1} emissive="#fcd34d" emissiveIntensity={.06} />
-    </Text3D>
-    <mesh position={[0,-.008,0]} rotation={[-Math.PI/2,0,0]}>
-      <ringGeometry args={[.02,.22,24]} />
-      <meshPhysicalMaterial color="#fcd34d" roughness={.2} metalness={.8} clearcoat={.3} transparent opacity={.2} />
+function CakeTopper({ r }: { r:number }) {
+  return <group position={[0, r * .08 + .022, 0]}>
+    <mesh position={[0,0,0]} rotation={[-Math.PI/2,0,0]}>
+      <circleGeometry args={[r * .06, 16]} />
+      <meshPhysicalMaterial color="#fcd34d" metalness={.92} roughness={.06} clearcoat={.6} envMapIntensity={2.5} />
     </mesh>
+    <mesh position={[0, .015, 0]} rotation={[-Math.PI/2,0,0]}>
+      <cylinderGeometry args={[r*.04, r*.05, .03, 16]} />
+      <meshPhysicalMaterial color="#fcd34d" metalness={.95} roughness={.05} clearcoat={.7} emissive="#fcd34d" emissiveIntensity={.1} envMapIntensity={3} />
+    </mesh>
+    {Array.from({length:10}).map((_,i)=>{const a=i/10*Math.PI*2;return <mesh key={i}
+      position={[Math.sin(a)*r*.055,0,Math.cos(a)*r*.055]}>
+      <sphereGeometry args={[.008,6,6]} />
+      <meshPhysicalMaterial color="#fcd34d" metalness={.95} roughness={.05} clearcoat={.6} />
+    </mesh>})}
   </group>
 }
 
@@ -115,13 +109,16 @@ function Candle({ pos, blown, idx }: { pos:[number,number]; blown:boolean; idx:n
 }
 
 function PremiumCake3D({blown,onBlow,onSongPlay,playing,detecting}:{blown:boolean;onBlow:()=>void;onSongPlay:()=>void;playing:boolean;detecting:boolean}) {
-  const grp=useRef<THREE.Group>(null!), ctrl=useRef<any>(null!)
-  const cpos=useMemo(()=>[0,72,144,216,288].map((a)=>{const r=a*Math.PI/180;return [Math.sin(r)*.42,Math.cos(r)*.42] as [number,number]}),[])
+  const grp=useRef<THREE.Group>(null!)
+  const cpos=[[0,.55],[.523,.169],[.31,-.455],[-.31,-.455],[-.523,.169]]
+  const rt=useRef(0)
 
-  useFrame((s)=>{
-    if(!grp.current||!ctrl.current)return
-    if(!ctrl.current.isDragging)grp.current.rotation.y+=s.clock.getDelta()*.12
-    if(!blown)grp.current.position.y=-.9+Math.sin(s.clock.elapsedTime*.4)*.025
+  useFrame((s,d)=>{
+    if(grp.current){
+      rt.current+=d
+      grp.current.rotation.y=rt.current*.12
+      if(!blown)grp.current.position.y=-.9+Math.sin(s.clock.elapsedTime*.4)*.025
+    }
   })
 
   const hc=useCallback((e:any)=>{e.stopPropagation();onSongPlay()},[onSongPlay])
@@ -129,12 +126,12 @@ function PremiumCake3D({blown,onBlow,onSongPlay,playing,detecting}:{blown:boolea
   return <group>
     <mesh position={[0,-1.8,0]} rotation={[-Math.PI/2,0,0]} receiveShadow>
       <circleGeometry args={[2.5,48]} />
-      <meshPhysicalMaterial color="#1a1a2e" roughness={.9} metalness={0} transparent opacity={.12} />
+      <meshBasicMaterial color="#1a1a2e" transparent opacity={.12} />
     </mesh>
 
     <group ref={grp} position={[0,-.9,0]}>
-      <OrbitControls ref={ctrl} enablePan={false} enableZoom={true}
-        minPolarAngle={Math.PI/4} maxPolarAngle={Math.PI/2} rotateSpeed={.5} />
+      <OrbitControls enablePan={false} enableZoom={true}
+        minPolarAngle={Math.PI/4} maxPolarAngle={Math.PI/2.5} rotateSpeed={.5} />
 
       <group position={[0,-.15,0]}>
         <mesh position={[0,-.01,0]} rotation={[-Math.PI/2,0,0]}>
@@ -158,9 +155,9 @@ function PremiumCake3D({blown,onBlow,onSongPlay,playing,detecting}:{blown:boolea
       <CakeTier bR={.72} tR={.65} h={.24} yO={.45} col="#f9a8d4" />
       <CreamRing r={.65} y={.69} />
 
-      <CakeTopper />
+      <CakeTopper r={.65} />
 
-      {cpos.map((p,i)=><Candle key={i} pos={p} blown={blown} idx={i} />)}
+      {cpos.map((p,i)=><Candle key={i} pos={p as [number,number]} blown={blown} idx={i} />)}
 
       <Rose pos={[.38,-.05,.55]} sc={1.2} />
       <Rose pos={[-.42,-.07,-.4]} sc={1} />
@@ -175,8 +172,8 @@ function PremiumCake3D({blown,onBlow,onSongPlay,playing,detecting}:{blown:boolea
       <Pearl pos={[-.55,-.07,0]} />
       <Pearl pos={[.58,.25,0]} />
       <Pearl pos={[-.58,.26,0]} />
-      <Pearl pos={[0,.8,.55]} />
-      <Pearl pos={[0,.8,-.55]} />
+      <Pearl pos={[.0,.82,.58]} />
+      <Pearl pos={[.0,.82,-.58]} />
 
       <mesh onClick={hc} visible={false}><boxGeometry args={[1.5,2.5,1.5]} /></mesh>
 
@@ -278,13 +275,14 @@ export default function CakeSection() {
           <div className="w-8 h-8 border border-rose-300/30 border-t-rose-300 rounded-full animate-spin" />
           <span className="text-white/20 text-xs font-sans tracking-widest uppercase">Baking your cake...</span></div>}>
           <Canvas shadows camera={{position:[0,-.05,3.4],fov:34}}
-            gl={{antialias:true,toneMapping:THREE.ACESFilmicToneMapping,toneMappingExposure:1.2}}>
-            <ambientLight intensity={.18} />
-            <hemisphereLight args={['#fce7f3','#1a1a2e',.35]} />
-            <directionalLight position={[2.5,4,3]} intensity={.7} castShadow />
-            <pointLight position={[-2,2,3]} intensity={.25} color="#fcd34d" />
-            <pointLight position={[0,3,-1]} intensity={.2} color="#f472b6" />
-            <spotLight position={[0,5,3]} angle={.3} penumbra={.8} intensity={.4} castShadow />
+            gl={{antialias:true,alpha:true,preserveDrawingBuffer:true,toneMapping:THREE.ACESFilmicToneMapping,toneMappingExposure:1.4}}
+            onCreated={({gl})=>{gl.setClearColor(0,0,0,0)}}>
+            <ambientLight intensity={.4} />
+            <hemisphereLight args={['#fce7f3','#1a1a2e',.6]} />
+            <directionalLight position={[2.5,4,3]} intensity={1.2} castShadow />
+            <pointLight position={[-2,2,3]} intensity={.5} color="#fcd34d" />
+            <pointLight position={[0,3,-1]} intensity={.4} color="#f472b6" />
+            <spotLight position={[0,5,3]} angle={.3} penumbra={.8} intensity={.8} castShadow />
             <PremiumCake3D blown={blown} onBlow={hb} onSongPlay={hs} playing={playing} detecting={detecting} />
           </Canvas>
         </Suspense>
@@ -308,3 +306,4 @@ export default function CakeSection() {
     </SectionWrapper>
   )
 }
+

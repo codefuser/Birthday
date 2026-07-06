@@ -1,5 +1,5 @@
-import { ReactNode, useRef, useEffect, useState } from 'react'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { ReactNode, useRef, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { cn } from '../../lib/utils'
 import { starWarpTransition, portalTransition, ribbonRevealTransition, lightBurstTransition, particleDissolveTransition } from '../../lib/animations'
 
@@ -91,22 +91,17 @@ function TransitionOverlay({ type, containerRef }: { type: TransitionType; conta
 }
 
 export default function SectionWrapper({ children, className, id, transitionType = 'none' }: SectionWrapperProps) {
-  const ref = useRef<HTMLElement>(null!)
+  const ref = useRef<HTMLDivElement>(null!)
   const overlayContainerRef = useRef<HTMLDivElement>(null!)
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ['start end', 'end start'],
-  })
-
-  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0])
-  const scale = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.95, 1, 1, 0.95])
-  const y = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [60, 0, 0, -60])
 
   return (
     <motion.section
       ref={ref}
       id={id}
-      style={{ opacity, scale, y }}
+      initial={{ opacity: 0, scale: 0.95, y: 60 }}
+      whileInView={{ opacity: 1, scale: 1, y: 0 }}
+      viewport={{ once: true, margin: '-10%' }}
+      transition={{ duration: 0.7, ease: 'easeOut' }}
       className={cn(
         'relative min-h-[100dvh] w-full flex flex-col items-center justify-center overflow-hidden px-4 py-20',
         className

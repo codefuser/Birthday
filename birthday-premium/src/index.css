@@ -31,6 +31,9 @@ html.lenis { scroll-behavior: auto; }
 
 ::selection { background: var(--color-rose-400); color: white; }
 
+html { scrollbar-width: none; -ms-overflow-style: none; }
+html::-webkit-scrollbar { display: none; }
+
 body {
   background: #0a0a1a;
   color: #faf9f5;

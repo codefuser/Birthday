@@ -12,6 +12,7 @@ import CelebrationSection from './components/sections/CelebrationSection'
 import FinalMessage from './components/sections/FinalMessage'
 import CountdownSection from './components/sections/CountdownSection'
 import SectionWrapper from './components/ui/SectionWrapper'
+import ErrorBoundary from './components/ui/ErrorBoundary'
 import { birthdayConfig } from './config/birthday'
 import { useReducedMotion } from './hooks/useReducedMotion'
 import { soundManager } from './lib/sound'
@@ -101,6 +102,7 @@ export default function App() {
       smoothWheel: true,
       wheelMultiplier: 1,
       touchMultiplier: 1.5,
+      syncScroll: true,
     })
 
     function raf(time: number) {
@@ -139,15 +141,15 @@ export default function App() {
         <MuteButton isMuted={isMuted} onToggle={toggleMute} />
         <ScrollIndicator />
 
-        <HeroSection />
-        <CakeSection />
-        <TeddySection />
-        <MemoriesSection />
-        <FriendshipTimeline />
-        <GiftSection />
-        <WishSection />
-        <CelebrationSection />
-        <FinalMessage />
+        <ErrorBoundary><HeroSection /></ErrorBoundary>
+        <ErrorBoundary><CakeSection /></ErrorBoundary>
+        <ErrorBoundary><TeddySection /></ErrorBoundary>
+        <ErrorBoundary><MemoriesSection /></ErrorBoundary>
+        <ErrorBoundary><FriendshipTimeline /></ErrorBoundary>
+        <ErrorBoundary><GiftSection /></ErrorBoundary>
+        <ErrorBoundary><WishSection /></ErrorBoundary>
+        <ErrorBoundary><CelebrationSection /></ErrorBoundary>
+        <ErrorBoundary><FinalMessage /></ErrorBoundary>
 
         <footer className="relative z-10 py-8 text-center bg-night-900 border-t border-white/5">
           <p className="text-white/20 text-xs font-sans flex items-center justify-center gap-2">
