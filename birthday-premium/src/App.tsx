@@ -3,7 +3,6 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import Lenis from 'lenis'
 import HeroSection from './components/sections/HeroSection'
 import CakeSection from './components/sections/CakeSection'
-import TeddySection from './components/sections/TeddySection'
 import MemoriesSection from './components/sections/MemoriesSection'
 import FriendshipTimeline from './components/sections/FriendshipTimeline'
 import GiftSection from './components/sections/GiftSection'
@@ -143,7 +142,6 @@ export default function App() {
 
         <ErrorBoundary><HeroSection /></ErrorBoundary>
         <ErrorBoundary><CakeSection /></ErrorBoundary>
-        <ErrorBoundary><TeddySection /></ErrorBoundary>
         <ErrorBoundary><MemoriesSection /></ErrorBoundary>
         <ErrorBoundary><FriendshipTimeline /></ErrorBoundary>
         <ErrorBoundary><GiftSection /></ErrorBoundary>
