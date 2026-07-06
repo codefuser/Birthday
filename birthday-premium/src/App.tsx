@@ -85,6 +85,13 @@ export default function App() {
     setTimeout(() => setCountdownDone(true), 1500)
   }, [])
 
+  useEffect(() => {
+    if (!showContent) return
+    if (birthdayConfig.backgroundMusic) {
+      soundManager.playBGM(birthdayConfig.backgroundMusic)
+    }
+  }, [showContent])
+
   const toggleMute = useCallback(() => {
     const muted = soundManager.toggleMute()
     setIsMuted(muted)

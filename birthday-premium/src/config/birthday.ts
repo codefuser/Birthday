@@ -27,8 +27,8 @@ function loadImages(): string[] {
     import: 'default',
   })
   for (const path of Object.keys(imageContext)) {
-    const url = imageContext[path] as string
-    if (url) images.push(url)
+    const mod = imageContext[path]
+    if (typeof mod === 'string' && mod) images.push(mod)
   }
   return images
 }
@@ -43,7 +43,7 @@ export const birthdayConfig: BirthdayConfig = {
   },
   photos: loadImages(),
   videos: [],
-  backgroundMusic: '',
+  backgroundMusic: '/assets/audio/HB_song.mp3',
   finalMessage: 'May your life be as beautiful as the joy you bring to others. Happy Birthday!',
   colors: {
     primary: '#f43f5e',
