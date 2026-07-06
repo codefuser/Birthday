@@ -227,15 +227,15 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 2.5, ease: 'easeOut' }}
-          className="mt-6 w-full max-w-sm mx-auto"
+          className="mt-8 w-full max-w-md mx-auto"
         >
-          <div className="relative rounded-2xl border border-white/[0.06] p-5 md:p-6 text-center"
+          <div className="relative rounded-3xl border border-white/[0.06] p-7 md:p-8 text-center"
             style={{
               background: 'linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))',
               backdropFilter: 'blur(16px)',
             }}
           >
-            <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{
+            <div className="absolute -inset-px rounded-3xl pointer-events-none" style={{
               background: 'linear-gradient(135deg, rgba(252,211,77,0.06), transparent 40%, rgba(252,211,77,0.02) 70%, transparent)',
               mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
               maskComposite: 'exclude',
@@ -243,79 +243,94 @@ export default function HeroSection() {
               padding: '1px',
             }} />
 
-            <p className="text-[10px] tracking-[0.3em] uppercase text-white/30 font-sans mb-2">
+            <p className="text-[10px] tracking-[0.35em] uppercase text-white/25 font-sans font-light mb-3">
               Celebrating Life Since
             </p>
 
-            <p className="text-sm font-display text-gold-300/80 mb-4">
+            <p className="text-base md:text-lg font-display text-gold-300/70 mb-5 tracking-wide">
               {formatBirthDate()}
             </p>
 
-            <div className="w-full h-px mb-4" style={{ background: 'linear-gradient(90deg, transparent, rgba(252,211,77,0.1), transparent)' }} />
+            <div className="w-full h-px mb-5" style={{ background: 'linear-gradient(90deg, transparent, rgba(252,211,77,0.08), transparent)' }} />
 
-            <p className="text-[10px] tracking-[0.3em] uppercase text-white/25 font-sans mb-3">
+            <p className="text-[10px] tracking-[0.35em] uppercase text-white/20 font-sans font-light mb-5">
               Age Today
             </p>
 
-            <div className="flex items-center justify-center gap-5 mb-4">
-              <div className="text-center">
+            <div className="flex items-start justify-center gap-4 md:gap-6 mb-5">
+              <div className="text-center flex-1">
                 <motion.span
                   key={age.years}
-                  initial={{ opacity: 0, y: -10 }}
+                  initial={{ opacity: 0, y: -12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="block text-3xl md:text-4xl font-display text-white leading-none"
+                  transition={{ duration: 0.5, ease: 'easeOut' }}
+                  className="block text-5xl md:text-6xl leading-none font-mono font-light text-white tracking-tight"
                 >
                   {age.years}
                 </motion.span>
-                <span className="text-[10px] tracking-widest uppercase text-white/30 font-sans">Years</span>
+                <span className="block text-[9px] tracking-[0.3em] uppercase text-white/25 font-sans font-light mt-2">Years</span>
               </div>
-              <span className="text-white/10 text-lg">·</span>
-              <div className="text-center">
-                <span className="block text-lg md:text-xl font-display text-white/70 leading-none">{age.months}</span>
-                <span className="text-[10px] tracking-widest uppercase text-white/25 font-sans">Months</span>
+              <div className="text-center flex-1">
+                <motion.span
+                  key={`m-${age.months}`}
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, ease: 'easeOut' }}
+                  className="block text-3xl md:text-4xl leading-none font-mono font-light text-white/70 tracking-tight"
+                >
+                  {age.months}
+                </motion.span>
+                <span className="block text-[9px] tracking-[0.3em] uppercase text-white/20 font-sans font-light mt-2">Month{age.months !== 1 ? 's' : ''}</span>
               </div>
-              <span className="text-white/10 text-lg">·</span>
-              <div className="text-center">
-                <span className="block text-lg md:text-xl font-display text-white/70 leading-none">{age.days}</span>
-                <span className="text-[10px] tracking-widest uppercase text-white/25 font-sans">Days</span>
+              <div className="text-center flex-1">
+                <motion.span
+                  key={`d-${age.days}`}
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, ease: 'easeOut' }}
+                  className="block text-3xl md:text-4xl leading-none font-mono font-light text-white/70 tracking-tight"
+                >
+                  {age.days}
+                </motion.span>
+                <span className="block text-[9px] tracking-[0.3em] uppercase text-white/20 font-sans font-light mt-2">Day{age.days !== 1 ? 's' : ''}</span>
               </div>
             </div>
 
-            <div className="w-full h-px mb-3" style={{ background: 'linear-gradient(90deg, transparent, rgba(252,211,77,0.1), transparent)' }} />
+            <div className="w-full h-px mb-4" style={{ background: 'linear-gradient(90deg, transparent, rgba(252,211,77,0.08), transparent)' }} />
 
-            <div className="grid grid-cols-3 gap-3 text-center">
+            <div className="grid grid-cols-3 gap-2 text-center">
               <div>
                 <motion.span
-                  key={age.totalHours}
+                  key={`h-${age.totalHours}`}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="block text-xs md:text-sm font-display text-white/60"
+                  className="block text-xs md:text-sm leading-none font-mono font-light text-white/50 tracking-tight"
                 >
                   {age.totalHours.toLocaleString()}
                 </motion.span>
-                <span className="text-[9px] tracking-widest uppercase text-white/20 font-sans">Hours</span>
+                <span className="block text-[8px] tracking-[0.25em] uppercase text-white/15 font-sans font-light mt-1.5">Hours</span>
               </div>
               <div>
                 <motion.span
-                  key={age.totalMinutes}
+                  key={`min-${age.totalMinutes}`}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="block text-xs md:text-sm font-display text-white/60"
+                  className="block text-xs md:text-sm leading-none font-mono font-light text-white/50 tracking-tight"
                 >
                   {age.totalMinutes.toLocaleString()}
                 </motion.span>
-                <span className="text-[9px] tracking-widest uppercase text-white/20 font-sans">Minutes</span>
+                <span className="block text-[8px] tracking-[0.25em] uppercase text-white/15 font-sans font-light mt-1.5">Minutes</span>
               </div>
               <div>
                 <motion.span
-                  key={age.totalSeconds}
+                  key={`s-${age.totalSeconds}`}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="block text-xs md:text-sm font-display text-gold-300/60"
+                  className="block text-xs md:text-sm leading-none font-mono font-light text-gold-300/50 tracking-tight"
                 >
                   {age.totalSeconds.toLocaleString()}
                 </motion.span>
-                <span className="text-[9px] tracking-widest uppercase text-white/20 font-sans">Seconds</span>
+                <span className="block text-[8px] tracking-[0.25em] uppercase text-white/15 font-sans font-light mt-1.5">Seconds</span>
               </div>
             </div>
           </div>

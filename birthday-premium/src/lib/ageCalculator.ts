@@ -26,6 +26,17 @@ export function calculateAge(now: Date): LiveAge {
     months += 12
   }
 
+  if (days < 0) {
+    months--
+    const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0)
+    days += prevMonth.getDate()
+  }
+
+  if (months < 0) {
+    years--
+    months += 12
+  }
+
   const diffMs = now.getTime() - bd.getTime()
   const totalHours = Math.floor(diffMs / 36e5)
   const totalMinutes = Math.floor(diffMs / 6e4)
