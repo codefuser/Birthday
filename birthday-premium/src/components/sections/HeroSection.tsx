@@ -272,27 +272,27 @@ export default function HeroSection() {
               </div>
               <div className="text-center flex-1 min-w-0">
                 <motion.span
-                  key={`m-${age.months}`}
+                  key={`tm-${age.totalMonths}`}
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, ease: 'easeOut' }}
                   className="block text-2xl md:text-4xl leading-none font-mono font-light text-white/70 tracking-tight"
                 >
-                  {age.months}
+                  {age.totalMonths.toLocaleString()}
                 </motion.span>
-                <span className="block text-[10px] tracking-[0.3em] uppercase text-white/20 font-sans font-light mt-2">Month{age.months !== 1 ? 's' : ''}</span>
+                <span className="block text-[10px] tracking-[0.3em] uppercase text-white/20 font-sans font-light mt-2">Months</span>
               </div>
               <div className="text-center flex-1 min-w-0">
                 <motion.span
-                  key={`d-${age.days}`}
+                  key={`td-${age.totalDays}`}
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, ease: 'easeOut' }}
                   className="block text-2xl md:text-4xl leading-none font-mono font-light text-white/70 tracking-tight"
                 >
-                  {age.days}
+                  {age.totalDays.toLocaleString()}
                 </motion.span>
-                <span className="block text-[10px] tracking-[0.3em] uppercase text-white/20 font-sans font-light mt-2">Day{age.days !== 1 ? 's' : ''}</span>
+                <span className="block text-[10px] tracking-[0.3em] uppercase text-white/20 font-sans font-light mt-2">Days</span>
               </div>
             </div>
 

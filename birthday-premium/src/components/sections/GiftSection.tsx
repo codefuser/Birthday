@@ -272,7 +272,7 @@ function GiftPopup({ gift, onClose }: { gift: GiftData; onClose: () => void }) {
             </h2>
 
             <p className="text-xs text-white/30 font-sans mb-3 tracking-wider">
-              {age.years} Years · {age.months} Months · {age.days} Days
+              {age.years} Years · {age.totalMonths} Total Months
             </p>
 
             <div className="w-12 h-px mx-auto my-4 rounded-full" style={{ background: `linear-gradient(90deg, transparent, ${gift.color}, transparent)` }} />
