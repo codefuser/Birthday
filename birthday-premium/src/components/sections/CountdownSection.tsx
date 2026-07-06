@@ -37,7 +37,7 @@ function CountNumber({ num, onComplete }: { num: number; onComplete: () => void 
       colors: ['#f43f5e', '#fbbf24', '#a78bfa', '#fcd34d'],
     })
 
-    return () => tl.kill()
+    return () => { tl.kill() }
   }, [onComplete])
 
   return (

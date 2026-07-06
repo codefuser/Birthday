@@ -138,7 +138,7 @@ export default function FinalMessage() {
     })
 
     function animate(time: number) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      ctx.clearRect(0, 0, canvas!.width, canvas!.height)
       dots.forEach(d => {
         d.a = 0.15 + Math.sin(time * d.sp + d.ph) * 0.35
         ctx.beginPath()
@@ -153,10 +153,7 @@ export default function FinalMessage() {
   }, [])
 
   return (
-    <SectionWrapper className="relative overflow-hidden" id="final" transitionType="none"
-      style={{
-        background: 'linear-gradient(165deg, #0B1026 0%, #120B2E 30%, #1A1035 55%, #0F0A28 80%, #08061A 100%)',
-      }}
+    <SectionWrapper className="relative overflow-hidden bg-final-section" id="final" transitionType="none"
     >
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
 

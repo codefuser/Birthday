@@ -84,3 +84,6 @@ body {
 .bg-rose-garden {
   background: radial-gradient(ellipse at 50% 50%, #2a0a1a 0%, #1a0a0a 40%, #0a0a1a 80%);
 }
+.bg-final-section {
+  background: linear-gradient(165deg, #0B1026 0%, #120B2E 30%, #1A1035 55%, #0F0A28 80%, #08061A 100%);
+}

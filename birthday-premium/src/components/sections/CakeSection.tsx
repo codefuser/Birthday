@@ -276,7 +276,7 @@ export default function CakeSection() {
           <span className="text-white/20 text-xs font-sans tracking-widest uppercase">Baking your cake...</span></div>}>
           <Canvas shadows camera={{position:[0,-.05,3.4],fov:34}}
             gl={{antialias:true,alpha:true,preserveDrawingBuffer:true,toneMapping:THREE.ACESFilmicToneMapping,toneMappingExposure:1.4}}
-            onCreated={({gl})=>{gl.setClearColor(0,0,0,0)}}>
+            onCreated={({gl})=>{gl.setClearColor(0x000000,0)}}>
             <ambientLight intensity={.4} />
             <hemisphereLight args={['#fce7f3','#1a1a2e',.6]} />
             <directionalLight position={[2.5,4,3]} intensity={1.2} castShadow />
