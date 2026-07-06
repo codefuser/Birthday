@@ -41,7 +41,7 @@ function CountNumber({ num, onComplete }: { num: number; onComplete: () => void 
   }, [onComplete])
 
   return (
-    <div ref={ref} className="text-8xl md:text-9xl font-display text-gold-300 font-bold select-none"
+    <div ref={ref} className="text-7xl md:text-9xl font-display text-gold-300 font-bold select-none"
       style={{ textShadow: '0 0 40px rgba(251, 191, 36, 0.5), 0 0 80px rgba(251, 191, 36, 0.3)' }}
     >
       {num}

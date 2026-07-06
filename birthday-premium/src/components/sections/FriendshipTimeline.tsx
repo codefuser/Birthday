@@ -42,7 +42,7 @@ export default function FriendshipTimeline() {
       <p className="text-white/30 font-sans text-sm tracking-widest uppercase mb-14">A timeline of beautiful moments</p>
 
       <div ref={trackRef} className="relative w-full max-w-4xl mx-auto">
-        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-emerald-400/20 to-transparent" />
+        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-emerald-400/20 to-transparent hidden md:block" />
 
         <div className="space-y-16">
           {timelineEvents.map((event, i) => {
@@ -54,11 +54,11 @@ export default function FriendshipTimeline() {
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8, ease: 'easeOut', delay: i * 0.12 }}
                 viewport={{ once: true }}
-                className={`relative flex items-center ${isLeft ? 'flex-row' : 'flex-row-reverse'} gap-4 md:gap-8`}
+                className={`relative flex items-center ${isLeft ? 'flex-row' : 'flex-row-reverse'} gap-3 md:gap-8`}
               >
-                <div className={`flex-1 ${isLeft ? 'text-right' : 'text-left'}`}>
+                <div className={`flex-1 min-w-0 ${isLeft ? 'text-right' : 'text-left'}`}>
                   <div
-                    className={`inline-block p-5 md:p-6 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:border-emerald-400/20 transition-all duration-500 hover:bg-white/[0.07]`}
+                    className={`inline-block p-4 md:p-6 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:border-emerald-400/20 transition-all duration-500 hover:bg-white/[0.07]`}
                   >
                     <div className={`flex ${isLeft ? 'justify-end' : 'justify-start'} mb-2`}>
                       <event.Icon />
@@ -78,7 +78,7 @@ export default function FriendshipTimeline() {
                   />
                 </div>
 
-                <div className="flex-1" />
+                <div className="flex-1 hidden md:block" />
               </motion.div>
             )
           })}

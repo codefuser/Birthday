@@ -244,14 +244,14 @@ export default function CakeSection() {
     if(blowCheckId){cancelAnimationFrame(blowCheckId);blowCheckId=null}
   }),[])
 
-  if(rm)return<SectionWrapper className="bg-rose-garden min-h-[100dvh] relative" id="cake" transitionType="portal">
+  if(rm)return    <SectionWrapper className="bg-rose-garden min-h-dvh relative" id="cake" transitionType="portal">
     <div className="text-center"><AnimatedText text="Make a Wish" className="text-4xl md:text-6xl font-heading text-rose-200 mb-4 text-center" />
     <p className="text-rose-100/40 font-sans tracking-widest uppercase text-sm">Blow the candles</p>
     <div className="mt-12 text-white/30 font-script text-2xl">May all your wishes come true</div></div>
   </SectionWrapper>
 
   return (
-    <SectionWrapper className="bg-rose-garden min-h-[130dvh] relative" id="cake" transitionType="portal">
+    <SectionWrapper className="bg-rose-garden min-h-dvh relative" id="cake" transitionType="portal">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(30)].map((_,i)=><motion.div key={i}
           className="absolute w-1.5 h-1.5 rounded-full"

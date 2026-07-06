@@ -257,7 +257,7 @@ function GiftPopup({ gift, onClose }: { gift: GiftData; onClose: () => void }) {
 
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full" style={{ background: `radial-gradient(circle, ${gift.color}30, transparent 70%)`, filter: 'blur(30px)' }} />
 
-        <div className="relative p-8 md:p-10 text-center">
+        <div className="relative p-6 md:p-10 text-center">
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -339,10 +339,10 @@ export default function GiftSection() {
       </div>
 
       <AnimatedText text="Gifts For You" className="text-3xl md:text-5xl font-heading text-gold-200 mb-3 text-center" />
-      <p className="text-white/30 font-sans text-sm tracking-widest uppercase mb-14 text-center">Tap each gift to unwrap</p>
+      <p className="text-white/30 font-sans text-sm tracking-widest uppercase mb-8 md:mb-14 text-center">Tap each gift to unwrap</p>
 
       <motion.div
-        className="grid grid-cols-2 md:grid-cols-3 gap-8 md:gap-12 max-w-3xl mx-auto w-full"
+        className="grid grid-cols-2 md:grid-cols-3 gap-6 md:gap-12 max-w-3xl mx-auto w-full"
         animate={selectedGift ? { scale: 0.97 } : { scale: 1 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >

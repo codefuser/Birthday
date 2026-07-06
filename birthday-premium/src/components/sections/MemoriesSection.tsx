@@ -56,7 +56,7 @@ function CoverFlowCarousel({ images, onSelect }: { images: string[]; onSelect: (
   return (
     <div
       className="relative w-full select-none overflow-hidden"
-      style={{ perspective: '1400px', height: `${ch + 140}px` }}
+      style={{ perspective: '1400px', height: `min(${ch + 140}px, 80dvh)` }}
       onPointerDown={onPointerDown}
       onPointerUp={onPointerUp}
       onPointerLeave={() => setIsDragging(false)}

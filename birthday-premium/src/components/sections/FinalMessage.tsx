@@ -331,7 +331,7 @@ export default function FinalMessage() {
               style={{ transform: 'translateZ(80px)' }}
             >
               <h1
-                className="text-6xl md:text-8xl lg:text-9xl font-display leading-none tracking-wide"
+                className="text-5xl md:text-8xl lg:text-9xl font-display leading-none tracking-wide"
                 style={{
                   background: 'linear-gradient(135deg, #fcd34d 0%, #fbbf24 30%, #f43f5e 60%, #fcd34d 100%)',
                   backgroundSize: '200% auto',

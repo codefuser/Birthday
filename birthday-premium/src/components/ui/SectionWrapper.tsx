@@ -103,7 +103,7 @@ export default function SectionWrapper({ children, className, id, transitionType
       viewport={{ once: true, margin: '-10%' }}
       transition={{ duration: 0.7, ease: 'easeOut' }}
       className={cn(
-        'relative min-h-[100dvh] w-full flex flex-col items-center justify-center overflow-hidden px-4 py-20',
+        'relative min-h-dvh w-full flex flex-col items-center justify-center px-4 py-12 md:py-20',
         className
       )}
     >
