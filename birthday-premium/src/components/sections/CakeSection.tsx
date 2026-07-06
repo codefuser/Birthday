@@ -1,15 +1,17 @@
 import { useRef, useState, Suspense, useMemo, useCallback, useEffect } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { OrbitControls } from '@react-three/drei'
+import { OrbitControls, Text3D } from '@react-three/drei'
 import { motion } from 'framer-motion'
 import * as THREE from 'three'
 import SectionWrapper from '../ui/SectionWrapper'
 import AnimatedText from '../ui/AnimatedText'
+import { birthdayConfig } from '../../config/birthday'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
 import { soundManager } from '../../lib/sound'
 import { StarIcon, HeartIcon, FlowerIcon } from '../ui/PremiumIcons'
 
 let micStream: MediaStream | null = null
+let blowCheckId: number | null = null
 
 function playHappyBirthday() {
   const AC = window.AudioContext || (window as unknown as Record<string, typeof AudioContext>).webkitAudioContext
@@ -35,26 +37,37 @@ function CakeTier({ bR, tR, h, yO, col }: { bR:number;tR:number;h:number;yO:numb
     for (let i = 0; i <= 24; i++) { const t=i/24; p.push(new THREE.Vector2(bR+(tR-bR)*Math.pow(t,.7), t*h)) }
     return p
   }, [bR, tR, h])
-  const geo = useMemo(() => new THREE.LatheGeometry(pts, 48), [pts])
-  return (
-    <group position={[0, yO, 0]}>
-      <mesh geometry={geo} castShadow receiveShadow>
-        <meshPhysicalMaterial color={col} roughness={.35} metalness={.05} clearcoat={.15} clearcoatRoughness={.3} />
-      </mesh>
-    </group>
-  )
+  return <mesh position={[0, yO, 0]} geometry={useMemo(()=>new THREE.LatheGeometry(pts, 48), [pts])} castShadow receiveShadow>
+    <meshPhysicalMaterial color={col} roughness={.35} metalness={.05} clearcoat={.15} clearcoatRoughness={.3} />
+  </mesh>
 }
 
-function CreamLayer({ r, y }: { r:number; y:number }) {
+function CreamRing({ r, y }: { r:number; y:number }) {
   const pts = useMemo(() => {
     const p: THREE.Vector2[] = []
-    for (let i = 0; i <= 12; i++) { const t=i/12; p.push(new THREE.Vector2(r*(1-t*.05), t*.06)) }
+    for (let i = 0; i <= 12; i++) { const t=i/12; p.push(new THREE.Vector2(r*(1+t*.03-t*.06), t*.04)) }
     return p
   }, [r])
-  const geo = useMemo(() => new THREE.LatheGeometry(pts, 32), [pts])
-  return <mesh position={[0, y, 0]} geometry={geo} receiveShadow>
+  return <mesh position={[0, y, 0]} geometry={useMemo(()=>new THREE.LatheGeometry(pts, 32), [pts])} receiveShadow>
     <meshPhysicalMaterial color="#fdf2f8" roughness={.6} metalness={0} clearcoat={.05} />
   </mesh>
+}
+
+function CakeTopper() {
+  return <group position={[0,.685,0]}>
+    <Text3D font="https://threejs.org/examples/fonts/helvetiker_bold.typeface.json"
+      size={.085} height={.02} curveRadius={.3}
+      bevelEnabled bevelSize={.003} bevelThickness={.008} bevelSegments={8}
+      anchorX="center" anchorY="middle">
+      MS
+      <meshPhysicalMaterial color="#fcd34d" metalness={.9} roughness={.1}
+        clearcoat={.4} clearcoatRoughness={.1} emissive="#fcd34d" emissiveIntensity={.06} />
+    </Text3D>
+    <mesh position={[0,-.008,0]} rotation={[-Math.PI/2,0,0]}>
+      <ringGeometry args={[.02,.22,24]} />
+      <meshPhysicalMaterial color="#fcd34d" roughness={.2} metalness={.8} clearcoat={.3} transparent opacity={.2} />
+    </mesh>
+  </group>
 }
 
 function Rose({ pos, sc=1 }: { pos:[number,number,number]; sc?:number }) {
@@ -81,27 +94,24 @@ function Sprinkles({ cnt=30, r, y }: { cnt:number; r:number; y:number }) {
   </mesh>)}</group>
 }
 
-function CandleFlame({ blown, idx }: { blown:boolean; idx:number }) {
+function Candle({ pos, blown, idx }: { pos:[number,number]; blown:boolean; idx:number }) {
   const mr=useRef<THREE.Mesh>(null!), gr=useRef<THREE.Mesh>(null!), t=useRef(Math.random()*100)
   useFrame((_,d)=>{t.current+=d
     if(mr.current&&!blown){
       const f=Math.sin(t.current*18+idx*3)*.15+Math.sin(t.current*11+idx*7)*.1+Math.sin(t.current*7+idx*2)*.08
-      mr.current.scale.x=1+f*.2;mr.current.scale.y=1+f*.25;mr.current.position.x=Math.sin(t.current*5+idx*2)*.008
+      mr.current.scale.x=1+f*.2;mr.current.scale.y=1+f*.25
     }
     if(gr.current){const i=blown?0:.6+Math.sin(t.current*15)*.2;gr.current.scale.setScalar(.3+i*.4)}
   })
-  return <group>
-    <mesh ref={mr} position={[0,.22,0]}><coneGeometry args={[.025,.07,8]} />
-      <meshPhysicalMaterial color="#fcd34d" emissive="#f97316" emissiveIntensity={blown?0:2} transparent opacity={blown?0:1} /></mesh>
+  return <group position={[pos[0],.88,pos[1]]}>
+    <mesh position={[0,0,0]}><cylinderGeometry args={[.018,.024,.28,8]} /><meshPhysicalMaterial color="#fef3c7" roughness={.3} metalness={.1} /></mesh>
+    <mesh position={[0,.02,0]}><cylinderGeometry args={[.026,.022,.02,8]} /><meshPhysicalMaterial color="#fcd34d" emissive="#fcd34d" emissiveIntensity={.15} /></mesh>
+    <mesh position={[0,.04,0]}><cylinderGeometry args={[.016,.018,.01,8]} /><meshPhysicalMaterial color="#fbbf24" emissive="#fbbf24" emissiveIntensity={.1} /></mesh>
+    <mesh ref={mr} position={[0,.22,0]}><coneGeometry args={[.025,.08,8]} />
+      <meshPhysicalMaterial color="#fcd34d" emissive="#f97316" emissiveIntensity={blown?0:2.5} transparent opacity={blown?0:1} /></mesh>
     <mesh ref={gr} position={[0,.18,0]}><sphereGeometry args={[.04,8,8]} />
       <meshBasicMaterial color="#fcd34d" transparent opacity={blown?0:.35} /></mesh>
   </group>
-}
-
-function FloatingRose() {
-  const ref=useRef<THREE.Group>(null!)
-  useFrame((s)=>{if(ref.current){ref.current.position.y=-1.2+Math.sin(s.clock.elapsedTime*.3)*.05;ref.current.rotation.y=s.clock.elapsedTime*.02}})
-  return <group ref={ref}><Rose pos={[0,0,0]} sc={1.5} /></group>
 }
 
 function PremiumCake3D({blown,onBlow,onSongPlay,playing,detecting}:{blown:boolean;onBlow:()=>void;onSongPlay:()=>void;playing:boolean;detecting:boolean}) {
@@ -110,10 +120,6 @@ function PremiumCake3D({blown,onBlow,onSongPlay,playing,detecting}:{blown:boolea
 
   useFrame((s)=>{
     if(!grp.current||!ctrl.current)return
-    const el=document.getElementById('cake');if(!el)return
-    const rect=el.getBoundingClientRect()
-    const prog=Math.max(0,Math.min(1,1-rect.top/window.innerHeight))
-    grp.current.scale.setScalar(.25+prog*.75)
     if(!ctrl.current.isDragging)grp.current.rotation.y+=s.clock.getDelta()*.12
     if(!blown)grp.current.position.y=-.9+Math.sin(s.clock.elapsedTime*.4)*.025
   })
@@ -128,42 +134,33 @@ function PremiumCake3D({blown,onBlow,onSongPlay,playing,detecting}:{blown:boolea
 
     <group ref={grp} position={[0,-.9,0]}>
       <OrbitControls ref={ctrl} enablePan={false} enableZoom={true}
-        minPolarAngle={Math.PI/4} maxPolarAngle={Math.PI/2.2} rotateSpeed={.5} />
+        minPolarAngle={Math.PI/4} maxPolarAngle={Math.PI/2} rotateSpeed={.5} />
 
-      <group position={[0,-.3,0]}>
-        <mesh position={[0,-.015,0]} rotation={[-Math.PI/2,0,0]}>
-          <ringGeometry args={[.9,1.7,48]} />
+      <group position={[0,-.15,0]}>
+        <mesh position={[0,-.01,0]} rotation={[-Math.PI/2,0,0]}>
+          <ringGeometry args={[.92,1.7,48]} />
           <meshPhysicalMaterial color="#e2e8f0" roughness={.3} metalness={.2} clearcoat={.5} />
         </mesh>
         <mesh position={[0,0,0]} rotation={[-Math.PI/2,0,0]}>
-          <ringGeometry args={[.78,1.0,48]} />
+          <ringGeometry args={[.82,1.0,48]} />
           <meshPhysicalMaterial color="#cbd5e1" roughness={.2} metalness={.4} clearcoat={.6} />
         </mesh>
       </group>
 
-      <CakeTier bR={1.0} tR={.93} h={.32} yO={-.15} col="#fce7f3" />
-      <CreamLayer r={.93} y={.17} />
+      <CakeTier bR={1.0} tR={.92} h={.32} yO={-.15} col="#fce7f3" />
+      <CreamRing r={.92} y={.17} />
       <Sprinkles cnt={22} r={.88} y={.08} />
 
-      <CakeTier bR={.88} tR={.82} h={.28} yO={.2} col="#fbcfe8" />
-      <CreamLayer r={.82} y={.48} />
-      <Sprinkles cnt={18} r={.77} y={.34} />
+      <CakeTier bR={.86} tR={.78} h={.28} yO={.17} col="#fbcfe8" />
+      <CreamRing r={.78} y={.45} />
+      <Sprinkles cnt={18} r={.74} y={.3} />
 
-      <CakeTier bR={.76} tR={.7} h={.24} yO={.52} col="#f9a8d4" />
+      <CakeTier bR={.72} tR={.65} h={.24} yO={.45} col="#f9a8d4" />
+      <CreamRing r={.65} y={.69} />
 
-      <CreamLayer r={.7} y={.76} />
-      <Sprinkles cnt={14} r={.65} y={.64} />
+      <CakeTopper />
 
-      {cpos.map(([x,z],i)=><group key={i} position={[x,.76,z]}>
-        <mesh position={[0,0,0]}><cylinderGeometry args={[.018,.022,.22,8]} /><meshPhysicalMaterial color="#fef3c7" roughness={.3} metalness={.1} /></mesh>
-        <mesh position={[0,.01,0]}><cylinderGeometry args={[.025,.02,.015,8]} /><meshPhysicalMaterial color="#fcd34d" emissive="#fcd34d" emissiveIntensity={.2} /></mesh>
-        <CandleFlame blown={blown} idx={i} />
-      </group>)}
-
-      <mesh position={[0,.76,0]} rotation={[-Math.PI/2,0,0]}>
-        <ringGeometry args={[.52,.62,32]} />
-        <meshPhysicalMaterial color="#fce7f3" roughness={.5} transparent opacity={.3} />
-      </mesh>
+      {cpos.map((p,i)=><Candle key={i} pos={p} blown={blown} idx={i} />)}
 
       <Rose pos={[.38,-.05,.55]} sc={1.2} />
       <Rose pos={[-.42,-.07,-.4]} sc={1} />
@@ -171,7 +168,6 @@ function PremiumCake3D({blown,onBlow,onSongPlay,playing,detecting}:{blown:boolea
       <Rose pos={[-.32,.26,-.5]} sc={.9} />
       <Rose pos={[.5,.68,-.25]} sc={1} />
       <Rose pos={[-.5,.7,.2]} sc={1.05} />
-      <FloatingRose />
 
       <Pearl pos={[.4,-.04,-.55]} />
       <Pearl pos={[-.4,-.06,.55]} />
@@ -184,8 +180,8 @@ function PremiumCake3D({blown,onBlow,onSongPlay,playing,detecting}:{blown:boolea
 
       <mesh onClick={hc} visible={false}><boxGeometry args={[1.5,2.5,1.5]} /></mesh>
 
-      {detecting&&!blown&&Array.from({length:15}).map((_,i)=><mesh key={i} position={[(Math.random()-.5)*.2,.7+Math.random()*.4,.7]}>
-        <sphereGeometry args={[.006+Math.random()*.008,4,4]} /><meshBasicMaterial color="#e2e8f0" transparent opacity={.4} /></mesh>)}
+      {detecting&&!blown&&Array.from({length:12}).map((_,i)=><mesh key={i} position={[(Math.random()-.5)*.2,.7+Math.random()*.4,.65]}>
+        <sphereGeometry args={[.005+Math.random()*.008,4,4]} /><meshBasicMaterial color="#e2e8f0" transparent opacity={.4} /></mesh>)}
     </group>
   </group>
 }
@@ -221,6 +217,7 @@ export default function CakeSection() {
   const hb=useCallback(()=>{
     if(blown)return;setBlown(true);setDetecting(false)
     if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null}
+    if(blowCheckId){cancelAnimationFrame(blowCheckId);blowCheckId=null}
     setTimeout(()=>{setSc(true);soundManager.playCelebration()},400)
   },[blown])
 
@@ -230,14 +227,14 @@ export default function CakeSection() {
       const stream=await navigator.mediaDevices.getUserMedia({audio:true});micStream=stream
       const AC=window.AudioContext||(window as unknown as Record<string, typeof AudioContext>).webkitAudioContext
       if(!AC){hb();return}
-      const ctx=new AC();const source=ctx.createMediaStreamSource(stream);const an=ctx.createAnalyser()
-      an.fftSize=256;source.connect(an)
-      const d=new Uint8Array(an.frequencyBinCount)
-      let to=setTimeout(()=>hb(),8000);let st=false
-      const ck=()=>{if(st||blown)return;an.getByteTimeDomainData(d)
+      const ctx=new AC();const src=ctx.createMediaStreamSource(stream)
+      const an=ctx.createAnalyser();an.fftSize=128;src.connect(an)
+      let to=setTimeout(()=>hb(),6000);let st=false
+      const ck=()=>{if(st||blown){cancelAnimationFrame(blowCheckId!);blowCheckId=null;return}
+        const d=new Uint8Array(an.frequencyBinCount);an.getByteTimeDomainData(d)
         let s=0;for(let i=0;i<d.length;i++)s+=Math.abs(d[i]-128)/128
-        if(s/d.length>.1){clearTimeout(to);hb();return}
-        requestAnimationFrame(ck)}
+        if(s/d.length>.08){clearTimeout(to);hb();return}
+        blowCheckId=requestAnimationFrame(ck)}
       ck()
       return()=>{st=true;clearTimeout(to)}
     }catch{hb()}
@@ -245,7 +242,10 @@ export default function CakeSection() {
 
   const hs=useCallback(()=>{if(playing)return;setPlaying(true);playHappyBirthday();setTimeout(()=>setPlaying(false),10000)},[playing])
 
-  useEffect(()=>(()=>{if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null}}),[])
+  useEffect(()=>(()=>{
+    if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null}
+    if(blowCheckId){cancelAnimationFrame(blowCheckId);blowCheckId=null}
+  }),[])
 
   if(rm)return<SectionWrapper className="bg-rose-garden min-h-[100dvh] relative" id="cake" transitionType="portal">
     <div className="text-center"><AnimatedText text="Make a Wish" className="text-4xl md:text-6xl font-heading text-rose-200 mb-4 text-center" />
@@ -264,20 +264,24 @@ export default function CakeSection() {
           transition={{duration:2+Math.random()*4,repeat:Infinity,delay:Math.random()*3,ease:'easeInOut'}} />)}
       </div>
 
-      <div className="relative z-10 text-center mb-4">
-        <AnimatedText text="Make a Wish" className="text-3xl md:text-5xl font-heading text-rose-200 text-center" />
-        <p className="text-rose-100/30 font-sans text-xs tracking-widest uppercase mt-2">Blow the candles and make your birthday wish</p>
+      <div className="relative z-10 text-center mb-8">
+        <motion.p initial={{opacity:0,y:-20}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
+          className="text-gold-300/60 font-sans text-xs tracking-[.3em] uppercase mb-3">Celebrating</motion.p>
+        <AnimatedText text={`Happy Birthday ${birthdayConfig.friendName}`}
+          className="text-3xl md:text-5xl font-heading text-rose-100 text-center" variant="reveal" />
+        <motion.p initial={{opacity:0}} whileInView={{opacity:1}} transition={{delay:.4}}
+          className="text-rose-100/25 font-sans text-xs tracking-widest uppercase mt-3">Blow the candles and make your birthday wish</motion.p>
       </div>
 
       <div className="w-full h-[420px] md:h-[520px] relative">
         <Suspense fallback={<div className="w-full h-full flex flex-col items-center justify-center gap-3">
           <div className="w-8 h-8 border border-rose-300/30 border-t-rose-300 rounded-full animate-spin" />
           <span className="text-white/20 text-xs font-sans tracking-widest uppercase">Baking your cake...</span></div>}>
-          <Canvas shadows camera={{position:[0,-.2,3.5],fov:34}}
+          <Canvas shadows camera={{position:[0,-.05,3.4],fov:34}}
             gl={{antialias:true,toneMapping:THREE.ACESFilmicToneMapping,toneMappingExposure:1.2}}>
             <ambientLight intensity={.18} />
             <hemisphereLight args={['#fce7f3','#1a1a2e',.35]} />
-            <directionalLight position={[2,4,3]} intensity={.7} castShadow />
+            <directionalLight position={[2.5,4,3]} intensity={.7} castShadow />
             <pointLight position={[-2,2,3]} intensity={.25} color="#fcd34d" />
             <pointLight position={[0,3,-1]} intensity={.2} color="#f472b6" />
             <spotLight position={[0,5,3]} angle={.3} penumbra={.8} intensity={.4} castShadow />
@@ -291,8 +295,7 @@ export default function CakeSection() {
         </div>
       </div>
 
-      {sc&&<motion.div
-        initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:.2}}
+      {sc&&<motion.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:.2}}
         className="relative z-10 text-center mt-5">
         <p className="text-rose-200/70 font-script text-2xl mb-2">Your wish has been made...</p>
         <div className="flex justify-center gap-3">
