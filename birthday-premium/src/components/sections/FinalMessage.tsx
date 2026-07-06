@@ -1,5 +1,5 @@
-import { useRef, useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useRef, useEffect, useState, useCallback } from 'react'
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import SectionWrapper from '../ui/SectionWrapper'
 
 function playPianoAmbience() {
@@ -80,6 +80,39 @@ export default function FinalMessage() {
   const [showBottom, setShowBottom] = useState(false)
   const [butterflies, setButterflies] = useState<Butterfly[]>([])
   const [fireflies, setFireflies] = useState<Firefly[]>([])
+
+  const mouseX = useMotionValue(0)
+  const mouseY = useMotionValue(0)
+
+  const rotX = useSpring(useTransform(mouseY, [-0.5, 0.5], [10, -10]), { stiffness: 250, damping: 25 })
+  const rotY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-10, 10]), { stiffness: 250, damping: 25 })
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = (e.clientX - rect.left) / rect.width - 0.5
+    const y = (e.clientY - rect.top) / rect.height - 0.5
+    mouseX.set(x)
+    mouseY.set(y)
+  }, [])
+
+  const handleMouseLeave = useCallback(() => {
+    mouseX.set(0)
+    mouseY.set(0)
+  }, [])
+
+  const dustParticles = Array.from({ length: 12 }, (_, i) => ({
+    id: i,
+    x: 10 + Math.random() * 80,
+    y: 10 + Math.random() * 80,
+    s: 1.5 + Math.random() * 2.5,
+    d: 3 + Math.random() * 4,
+    delay: Math.random() * 6,
+    driftX: (Math.random() - 0.5) * 30,
+    driftY: (Math.random() - 0.5) * 20,
+  }))
+
+  const reflectionX = useTransform(mouseX, [-0.5, 0.5], ['20%', '80%'])
+  const reflectionY = useTransform(mouseY, [-0.5, 0.5], ['20%', '80%'])
 
   useEffect(() => {
     if (!visible) return
@@ -232,119 +265,212 @@ export default function FinalMessage() {
       </AnimatePresence>
 
       <motion.div
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        transition={{ duration: 1.2 }}
+        initial={{ opacity: 0, scale: 0.97 }}
+        animate={visible ? { opacity: 1, scale: [1, 1.004, 1] } : {}}
+        transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94], scale: { duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 2 } }}
         onViewportEnter={() => setVisible(true)}
         viewport={{ once: true, amount: 0.3 }}
         className="relative z-10 w-full max-w-lg mx-auto px-5 flex flex-col items-center justify-center min-h-[80dvh]"
+        style={{ perspective: '1200px' }}
       >
         <motion.div
-          initial={{ opacity: 0, y: 50, scale: 0.97 }}
-          animate={visible ? { opacity: 1, y: 0, scale: 1 } : {}}
-          transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="relative w-full rounded-3xl border border-white/[0.03] p-8 md:p-12 text-center"
+          className="relative w-full rounded-[30px]"
           style={{
-            background: 'linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))',
-            backdropFilter: 'blur(24px)',
-            boxShadow: '0 0 80px rgba(252,211,77,0.06), 0 0 160px rgba(252,211,77,0.03)',
+            transformStyle: 'preserve-3d',
+            rotateX: rotX,
+            rotateY: rotY,
           }}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
         >
-          <div className="absolute -inset-px rounded-3xl pointer-events-none" style={{
+          <div className="absolute inset-0 rounded-[30px] pointer-events-none" style={{
+            background: 'linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01))',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+            boxShadow: '0 0 80px rgba(252,211,77,0.06), 0 0 160px rgba(252,211,77,0.03)',
+            transform: 'translateZ(0)',
+          }} />
+
+          <div className="absolute -inset-px rounded-[31px] pointer-events-none" style={{
             background: 'linear-gradient(135deg, rgba(252,211,77,0.08), transparent 40%, rgba(252,211,77,0.03) 70%, transparent)',
             mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
             maskComposite: 'exclude',
             WebkitMaskComposite: 'xor',
             padding: '1px',
+            transform: 'translateZ(1px)',
           }} />
 
-          <motion.p
-            initial={{ opacity: 0, y: 15 }}
-            animate={visible ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-xs md:text-sm tracking-[0.25em] uppercase mb-6"
-            style={{ color: 'rgba(252,211,77,0.6)' }}
-          >
-            ✦ Happy Birthday ✦
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.85 }}
-            animate={visible ? { opacity: 1, scale: 1 } : {}}
-            transition={{ duration: 1, delay: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="relative mb-6"
-          >
-            <h1
-              className="text-6xl md:text-8xl lg:text-9xl font-display leading-none tracking-wide"
-              style={{
-                background: 'linear-gradient(135deg, #fcd34d 0%, #fbbf24 30%, #f43f5e 60%, #fcd34d 100%)',
-                backgroundSize: '200% auto',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                animation: visible ? 'shimmer 4s ease-in-out infinite' : 'none',
-                filter: 'drop-shadow(0 0 20px rgba(252,211,77,0.15))',
-              }}
+          <div className="relative p-8 md:p-12 text-center" style={{ transformStyle: 'preserve-3d' }}>
+            <motion.p
+              initial={{ opacity: 0, y: 15 }}
+              animate={visible ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="text-xs md:text-sm tracking-[0.25em] uppercase mb-6"
+              style={{ color: 'rgba(252,211,77,0.6)', transform: 'translateZ(25px)' }}
             >
-              MS
-            </h1>
+              ✦ Happy Birthday ✦
+            </motion.p>
 
-            <motion.div className="absolute -top-3 -right-3 w-12 h-12 md:w-14 md:h-14 pointer-events-none"
-              initial={{ opacity: 0, scale: 0 }}
-              animate={visible ? { opacity: [0, 0.4, 0], scale: [0, 1.2, 0] } : {}}
-              transition={{ duration: 3, delay: 2, repeat: Infinity, ease: 'easeInOut' }}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.85 }}
+              animate={visible ? { opacity: 1, scale: 1 } : {}}
+              transition={{ duration: 1, delay: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="relative mb-6"
+              style={{ transform: 'translateZ(80px)' }}
             >
-              <svg viewBox="0 0 24 24" className="w-full h-full" fill="none" stroke="#fcd34d" strokeWidth="1" opacity="0.4">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-              </svg>
+              <h1
+                className="text-6xl md:text-8xl lg:text-9xl font-display leading-none tracking-wide"
+                style={{
+                  background: 'linear-gradient(135deg, #fcd34d 0%, #fbbf24 30%, #f43f5e 60%, #fcd34d 100%)',
+                  backgroundSize: '200% auto',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  animation: visible ? 'shimmer 4s ease-in-out infinite' : 'none',
+                  filter: 'drop-shadow(0 0 20px rgba(252,211,77,0.15))',
+                }}
+              >
+                MS
+              </h1>
+
+              <motion.div className="absolute -top-3 -right-3 w-12 h-12 md:w-14 md:h-14 pointer-events-none"
+                style={{ transform: 'translateZ(90px)' }}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={visible ? { opacity: [0, 0.4, 0], scale: [0, 1.2, 0] } : {}}
+                transition={{ duration: 3, delay: 2, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                <svg viewBox="0 0 24 24" className="w-full h-full" fill="none" stroke="#fcd34d" strokeWidth="1" opacity="0.4">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                </svg>
+              </motion.div>
             </motion.div>
-          </motion.div>
 
-          <div className="space-y-2">
-            {messageLines.map((line, i) => (
-              <AnimatePresence key={i}>
-                {revealedLines > i && (
-                  <motion.p
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
-                    className={`${line === '' ? 'h-3' : ''} ${
-                      line.includes('Happy Birthday')
-                        ? 'text-base md:text-lg font-display text-rose-200/90'
-                        : 'text-sm md:text-base text-white/50 font-sans font-light leading-relaxed'
-                    }`}
-                  >
-                    {line}
-                  </motion.p>
-                )}
-              </AnimatePresence>
-            ))}
+            <div className="space-y-2" style={{ transform: 'translateZ(40px)' }}>
+              {messageLines.map((line, i) => (
+                <AnimatePresence key={i}>
+                  {revealedLines > i && (
+                    <motion.p
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
+                      className={`${line === '' ? 'h-3' : ''} ${
+                        line.includes('Happy Birthday')
+                          ? 'text-base md:text-lg font-display text-rose-200/90'
+                          : 'text-sm md:text-base text-white/50 font-sans font-light leading-relaxed'
+                      }`}
+                    >
+                      {line}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              ))}
+            </div>
+
+            <motion.div
+              className="w-12 h-px mx-auto mt-6 rounded-full"
+              initial={{ scaleX: 0, opacity: 0 }}
+              animate={showBottom ? { scaleX: 1, opacity: 1 } : {}}
+              transition={{ duration: 1, ease: 'easeOut' }}
+              style={{ background: 'linear-gradient(90deg, transparent, rgba(252,211,77,0.3), transparent)', transform: 'translateZ(35px)' }}
+            />
+
+            <AnimatePresence>
+              {showBottom && (
+                <motion.p
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, ease: 'easeOut' }}
+                  className="text-[10px] md:text-xs text-white/15 font-sans tracking-wider mt-4"
+                  style={{ transform: 'translateZ(30px)' }}
+                >
+                  Made with <span className="text-rose-400/40">❤</span> especially for MS
+                </motion.p>
+              )}
+            </AnimatePresence>
           </div>
 
-          <motion.div
-            className="w-12 h-px mx-auto mt-6 rounded-full"
-            initial={{ scaleX: 0, opacity: 0 }}
-            animate={showBottom ? { scaleX: 1, opacity: 1 } : {}}
-            transition={{ duration: 1, ease: 'easeOut' }}
-            style={{ background: 'linear-gradient(90deg, transparent, rgba(252,211,77,0.3), transparent)' }}
-          />
+          <div className="absolute inset-0 rounded-[30px] pointer-events-none overflow-hidden" style={{ transform: 'translateZ(3px)' }}>
+            <motion.div
+              className="absolute inset-y-0 w-1/2"
+              style={{
+                background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.025) 50%, transparent)',
+                skewX: '-20deg',
+              }}
+              initial={{ x: '-100%' }}
+              animate={visible ? { x: '400%' } : {}}
+              transition={{ duration: 4, delay: 4, repeat: Infinity, ease: [0.25, 0.1, 0.25, 1] }}
+            />
+            <motion.div
+              className="absolute w-1/2 h-1/2 rounded-full"
+              style={{
+                background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.015), transparent)',
+                filter: 'blur(30px)',
+                x: reflectionX,
+                y: reflectionY,
+              }}
+            />
+          </div>
 
-          <AnimatePresence>
-            {showBottom && (
-              <motion.p
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, ease: 'easeOut' }}
-                className="text-[10px] md:text-xs text-white/15 font-sans tracking-wider mt-4"
-              >
-                Made with <span className="text-rose-400/40">❤</span> especially for MS
-              </motion.p>
-            )}
-          </AnimatePresence>
+          {dustParticles.map(p => (
+            <motion.div
+              key={p.id}
+              className="absolute pointer-events-none rounded-full"
+              style={{
+                width: p.s,
+                height: p.s,
+                left: `${p.x}%`,
+                top: `${p.y}%`,
+                background: 'radial-gradient(circle, rgba(252,211,77,0.6), transparent)',
+                filter: 'blur(1px)',
+                transform: `translateZ(${60 + Math.random() * 40}px)`,
+              }}
+              initial={{ opacity: 0 }}
+              animate={visible ? {
+                opacity: [0, 0.5, 0.2, 0.4, 0],
+                x: [0, p.driftX * 0.3, p.driftX * 0.6, p.driftX, 0],
+                y: [0, p.driftY * 0.3, p.driftY * 0.6, p.driftY, 0],
+              } : {}}
+              transition={{
+                duration: p.d,
+                delay: p.delay,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            />
+          ))}
 
-          <motion.div className="absolute inset-0 rounded-3xl pointer-events-none overflow-hidden"
-            initial={{ opacity: 0 }}
-            animate={visible ? { opacity: 1 } : {}}
-          >
+          {[0, 1, 2, 3].map(i => (
+            <motion.div
+              key={`sparkle-${i}`}
+              className="absolute pointer-events-none"
+              style={{
+                width: 8,
+                height: 8,
+                top: i < 2 ? -10 : undefined,
+                bottom: i >= 2 ? -10 : undefined,
+                left: i % 2 === 0 ? -10 : undefined,
+                right: i % 2 === 1 ? -10 : undefined,
+                transform: `translateZ(${100}px)`,
+              }}
+              initial={{ opacity: 0, scale: 0, rotate: 0 }}
+              animate={visible ? {
+                opacity: [0, 0.6, 0, 0.4, 0],
+                scale: [0, 1, 0.5, 0.8, 0],
+                rotate: [0, 45, 90, 135, 180],
+              } : {}}
+              transition={{
+                duration: 4,
+                delay: i * 1.2 + 1,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            >
+              <svg viewBox="0 0 24 24" className="w-full h-full" fill="#fcd34d" opacity="0.5">
+                <path d="M12 0l1.5 7.5L21 9l-7.5 3L15 21l-3-6-3 6 1.5-9L3 9l7.5-1.5z" />
+              </svg>
+            </motion.div>
+          ))}
+
+          <div className="absolute inset-0 rounded-[30px] pointer-events-none overflow-hidden" style={{ transform: 'translateZ(-1px)' }}>
             <motion.div className="absolute -top-10 -left-10 w-40 h-40 rounded-full"
               style={{ background: 'radial-gradient(circle, rgba(252,211,77,0.03), transparent)', filter: 'blur(20px)' }}
               animate={{ x: [0, 15, 0, -15, 0], y: [0, -10, 0, 10, 0] }}
@@ -355,7 +481,7 @@ export default function FinalMessage() {
               animate={{ x: [0, -15, 0, 15, 0], y: [0, 10, 0, -10, 0] }}
               transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
             />
-          </motion.div>
+          </div>
         </motion.div>
       </motion.div>
     </SectionWrapper>
