@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { calculateAge, type LiveAge, BIRTH_DATE } from '../lib/ageCalculator'
+import { calculateAge, type LiveAge } from '../lib/ageCalculator'
 
 export function useLiveAge(): LiveAge {
   const [age, setAge] = useState<LiveAge>(() => calculateAge(new Date()))
