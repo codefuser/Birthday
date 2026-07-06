@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import SectionWrapper from '../ui/SectionWrapper'
 import AnimatedText from '../ui/AnimatedText'
 import { soundManager } from '../../lib/sound'
+import { useLiveAge } from '../../hooks/useLiveAge'
 
 interface GiftData {
   id: number
@@ -215,6 +216,7 @@ function GiftBox({
 
 function GiftPopup({ gift, onClose }: { gift: GiftData; onClose: () => void }) {
   const overlayRef = useRef<HTMLDivElement>(null)
+  const age = useLiveAge()
 
   useEffect(() => {
     document.body.style.overflow = 'hidden'
@@ -266,8 +268,12 @@ function GiftPopup({ gift, onClose }: { gift: GiftData; onClose: () => void }) {
             </div>
 
             <h2 className="text-xl md:text-2xl font-heading text-white mb-1">
-              A Special Blessing For You
+              On Your {age.years}<sup>th</sup> Birthday
             </h2>
+
+            <p className="text-xs text-white/30 font-sans mb-3 tracking-wider">
+              {age.years} Years · {age.months} Months · {age.days} Days
+            </p>
 
             <div className="w-12 h-px mx-auto my-4 rounded-full" style={{ background: `linear-gradient(90deg, transparent, ${gift.color}, transparent)` }} />
 

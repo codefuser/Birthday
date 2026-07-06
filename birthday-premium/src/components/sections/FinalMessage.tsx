@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import SectionWrapper from '../ui/SectionWrapper'
+import { useLiveAge } from '../../hooks/useLiveAge'
 
 function playPianoAmbience() {
   try {
@@ -80,6 +81,7 @@ export default function FinalMessage() {
   const [showBottom, setShowBottom] = useState(false)
   const [butterflies, setButterflies] = useState<Butterfly[]>([])
   const [fireflies, setFireflies] = useState<Firefly[]>([])
+  const age = useLiveAge()
 
   const mouseX = useMotionValue(0)
   const mouseY = useMotionValue(0)
@@ -309,6 +311,16 @@ export default function FinalMessage() {
               style={{ color: 'rgba(252,211,77,0.6)', transform: 'translateZ(25px)' }}
             >
               ✦ Happy Birthday ✦
+            </motion.p>
+
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={visible ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="text-xs text-white/20 font-sans tracking-wider mb-4"
+              style={{ transform: 'translateZ(30px)' }}
+            >
+              {age.years} Years · {age.months} Months · {age.days} Days
             </motion.p>
 
             <motion.div

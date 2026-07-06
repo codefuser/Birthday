@@ -1,6 +1,7 @@
 export interface BirthdayConfig {
   friendName: string
   birthdayDate: string
+  birthDate: Date
   greetingMessages: {
     main: string
     sub: string
@@ -35,7 +36,8 @@ function loadImages(): string[] {
 
 export const birthdayConfig: BirthdayConfig = {
   friendName: 'Birthday Star',
-  birthdayDate: 'July 15, 2026',
+  birthdayDate: 'July 7, 2006',
+  birthDate: new Date(2006, 6, 7),
   greetingMessages: {
     main: 'Happy Birthday!',
     sub: 'Another year of being amazing. Today we celebrate YOU.',

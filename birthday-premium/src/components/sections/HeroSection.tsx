@@ -5,6 +5,8 @@ import gsap from 'gsap'
 import * as THREE from 'three'
 import AnimatedText from '../ui/AnimatedText'
 import { birthdayConfig } from '../../config/birthday'
+import { useLiveAge } from '../../hooks/useLiveAge'
+import { formatBirthDate } from '../../lib/ageCalculator'
 
 function ShootingStars() {
   const count = 3
@@ -162,6 +164,7 @@ export default function HeroSection() {
   const containerRef = useRef<HTMLDivElement>(null!)
   const glowRef = useRef<HTMLDivElement>(null!)
   const scrollHintRef = useRef<HTMLDivElement>(null!)
+  const age = useLiveAge()
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -221,15 +224,101 @@ export default function HeroSection() {
         </motion.p>
 
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 2.5 }}
-          className="inline-flex items-center gap-3 px-6 py-3 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 2.5, ease: 'easeOut' }}
+          className="mt-6 w-full max-w-sm mx-auto"
         >
-          <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse" />
-          <span className="text-xs tracking-widest uppercase text-white/30 font-sans">
-            {birthdayConfig.birthdayDate}
-          </span>
+          <div className="relative rounded-2xl border border-white/[0.06] p-5 md:p-6 text-center"
+            style={{
+              background: 'linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))',
+              backdropFilter: 'blur(16px)',
+            }}
+          >
+            <div className="absolute -inset-px rounded-2xl pointer-events-none" style={{
+              background: 'linear-gradient(135deg, rgba(252,211,77,0.06), transparent 40%, rgba(252,211,77,0.02) 70%, transparent)',
+              mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+              maskComposite: 'exclude',
+              WebkitMaskComposite: 'xor',
+              padding: '1px',
+            }} />
+
+            <p className="text-[10px] tracking-[0.3em] uppercase text-white/30 font-sans mb-2">
+              Celebrating Life Since
+            </p>
+
+            <p className="text-sm font-display text-gold-300/80 mb-4">
+              {formatBirthDate()}
+            </p>
+
+            <div className="w-full h-px mb-4" style={{ background: 'linear-gradient(90deg, transparent, rgba(252,211,77,0.1), transparent)' }} />
+
+            <p className="text-[10px] tracking-[0.3em] uppercase text-white/25 font-sans mb-3">
+              Age Today
+            </p>
+
+            <div className="flex items-center justify-center gap-5 mb-4">
+              <div className="text-center">
+                <motion.span
+                  key={age.years}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="block text-3xl md:text-4xl font-display text-white leading-none"
+                >
+                  {age.years}
+                </motion.span>
+                <span className="text-[10px] tracking-widest uppercase text-white/30 font-sans">Years</span>
+              </div>
+              <span className="text-white/10 text-lg">·</span>
+              <div className="text-center">
+                <span className="block text-lg md:text-xl font-display text-white/70 leading-none">{age.months}</span>
+                <span className="text-[10px] tracking-widest uppercase text-white/25 font-sans">Months</span>
+              </div>
+              <span className="text-white/10 text-lg">·</span>
+              <div className="text-center">
+                <span className="block text-lg md:text-xl font-display text-white/70 leading-none">{age.days}</span>
+                <span className="text-[10px] tracking-widest uppercase text-white/25 font-sans">Days</span>
+              </div>
+            </div>
+
+            <div className="w-full h-px mb-3" style={{ background: 'linear-gradient(90deg, transparent, rgba(252,211,77,0.1), transparent)' }} />
+
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div>
+                <motion.span
+                  key={age.totalHours}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="block text-xs md:text-sm font-display text-white/60"
+                >
+                  {age.totalHours.toLocaleString()}
+                </motion.span>
+                <span className="text-[9px] tracking-widest uppercase text-white/20 font-sans">Hours</span>
+              </div>
+              <div>
+                <motion.span
+                  key={age.totalMinutes}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="block text-xs md:text-sm font-display text-white/60"
+                >
+                  {age.totalMinutes.toLocaleString()}
+                </motion.span>
+                <span className="text-[9px] tracking-widest uppercase text-white/20 font-sans">Minutes</span>
+              </div>
+              <div>
+                <motion.span
+                  key={age.totalSeconds}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="block text-xs md:text-sm font-display text-gold-300/60"
+                >
+                  {age.totalSeconds.toLocaleString()}
+                </motion.span>
+                <span className="text-[9px] tracking-widest uppercase text-white/20 font-sans">Seconds</span>
+              </div>
+            </div>
+          </div>
         </motion.div>
       </div>
 
