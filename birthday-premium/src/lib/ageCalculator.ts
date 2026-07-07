@@ -35,5 +35,5 @@ const MONTHS_NAMES = [
 ]
 
 export function formatBirthDate(): string {
-  return `${BIRTH_DATE.getDate()} ${MONTHS_NAMES[BIRTH_DATE.getMonth()]} ${BIRTH_DATE.getFullYear()}`
+  return `${BIRTH_DATE.getDate()} ${MONTHS_NAMES[BIRTH_DATE.getMonth()]} 2026`
 }
