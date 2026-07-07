@@ -123,7 +123,6 @@ export default function MemoriesSection() {
 
   return (
     <SectionWrapper className="bg-galaxy py-12 md:py-20 overflow-x-hidden" id="memories" transitionType="lightBurst">
-      <div className="absolute inset-0 pointer-events-none z-20" style={{ background: 'linear-gradient(to bottom, transparent 40%, rgba(10,10,26,0.6) 75%, #0a0a1a 100%)' }} />
 
       <AnimatedText text="Photo Memories" className="text-3xl md:text-5xl font-heading text-rose-200 mb-3 text-center" />
       <p className="text-white/30 font-sans text-sm tracking-widest uppercase mb-10 text-center">A collection of special moments</p>
