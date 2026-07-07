@@ -1,62 +1,108 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import SectionWrapper from '../ui/SectionWrapper'
 import AnimatedText from '../ui/AnimatedText'
 import { birthdayConfig } from '../../config/birthday'
 
-function KamCarousel({ images, onSelect }: { images: string[]; onSelect: (src: string) => void }) {
-  const n = images.length
-
-  const cardW = 440
-  const ba = 360 / n
-  const zDist = -(cardW * 0.5 + 8) / Math.tan((ba * 0.5) * Math.PI / 180)
-
+function Card({ src, onSelect }: { src: string; onSelect: () => void }) {
   return (
     <div
-      className="relative w-full select-none overflow-hidden"
+      onClick={onSelect}
+      className="relative flex-none cursor-pointer overflow-hidden rounded-3xl bg-black/30"
       style={{
-        height: `min(40rem, 65dvh)`,
-        perspective: '50em',
-        mask: 'linear-gradient(90deg, transparent 5%, black 12% 88%, transparent 95%)',
-        WebkitMask: 'linear-gradient(90deg, transparent 5%, black 12% 88%, transparent 95%)',
+        width: 320,
+        height: 400,
+        boxShadow: '0 20px 50px rgba(0,0,0,0.45)',
+        transition: '0.4s',
       }}
     >
-      <div className="flex items-center justify-center w-full h-full" style={{ transformStyle: 'preserve-3d' }}>
-        <div
-          className="ring"
-          style={{
-            transformStyle: 'preserve-3d',
-            animation: 'ry 32s linear infinite',
-          }}
-        >
-          {images.map((src, i) => (
-            <div
-              key={i}
-              onClick={() => onSelect(src)}
-              className="absolute cursor-pointer"
-              style={{
-                width: cardW,
-                height: cardW * 5 / 4,
-                transform: `rotateY(${i * ba}deg) translateZ(${zDist}px)`,
-                backfaceVisibility: 'hidden',
-              }}
-            >
-              <div
-                className="w-full h-full overflow-hidden bg-black/40"
-                style={{ borderRadius: '1.5em' }}
-              >
-                <img
-                  src={src}
-                  alt={`Memory ${i + 1}`}
-                  className="w-full h-full"
-                  style={{ objectFit: 'cover', filter: 'brightness(1.25)' }}
-                  draggable={false}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
+      <div
+        className="absolute inset-0 z-10 pointer-events-none"
+        style={{
+          padding: 2,
+          borderRadius: 24,
+          background: 'conic-gradient(#60a5fa, #c084fc, #22d3ee, #60a5fa)',
+          mask: 'linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)',
+          maskComposite: 'exclude',
+          WebkitMask: 'linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)',
+          WebkitMaskComposite: 'xor',
+        }}
+      />
+      <img
+        src={src}
+        alt=""
+        className="w-full h-full"
+        style={{ objectFit: 'cover', animation: 'card-zoom 14s ease-in-out infinite alternate' }}
+        draggable={false}
+      />
+      <div
+        className="absolute inset-0 z-20 pointer-events-none"
+        style={{
+          background: 'linear-gradient(120deg, transparent, rgba(255,255,255,0.35), transparent)',
+          transform: 'translateX(-150%) skewX(-20deg)',
+          transition: '1s',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.transform = 'translateX(180%) skewX(-20deg)' }}
+        onMouseLeave={e => { e.currentTarget.style.transform = 'translateX(-150%) skewX(-20deg)' }}
+      />
+      <div
+        className="absolute left-4 right-4 bottom-4 z-30"
+        style={{
+          background: 'rgba(255,255,255,0.12)',
+          backdropFilter: 'blur(12px)',
+          padding: 18,
+          borderRadius: 18,
+        }}
+      >
+        <h3 className="text-lg font-medium" style={{ color: '#d590f5', textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
+          Memory
+        </h3>
+        <small className="text-xs text-white/60 block mt-0.5" style={{ textShadow: '1px 1px 1px rgba(0,0,0,0.8)' }}>
+          Pure CSS animation
+        </small>
       </div>
+    </div>
+  )
+}
+
+function HorizontalMarquee({ images, onSelect }: { images: string[]; onSelect: (src: string) => void }) {
+  const setWidth = useMemo(() => images.length * 344, [images.length])
+  const items = useMemo(() => [...images, ...images], [images])
+
+  return (
+    <div className="slider relative overflow-hidden mt-8" style={{ marginTop: '4rem' }}>
+      <div
+        className="absolute top-0 left-0 w-30 h-full z-10 pointer-events-none"
+        style={{ width: 120, background: 'linear-gradient(to right, #090b16, transparent)' }}
+      />
+      <div
+        className="absolute top-0 right-0 w-30 h-full z-10 pointer-events-none"
+        style={{ width: 120, background: 'linear-gradient(to left, #090b16, transparent)' }}
+      />
+
+      <div
+        className="track flex gap-6"
+        style={{
+          width: 'max-content',
+          animation: `scroll-${setWidth} 30s linear infinite`,
+        }}
+      >
+        {items.map((src, i) => (
+          <Card key={i} src={src} onSelect={() => onSelect(src)} />
+        ))}
+      </div>
+
+      <style>{`
+        @keyframes scroll-${setWidth} {
+          to { transform: translateX(-${setWidth}px); }
+        }
+        .slider:hover .track {
+          animation-play-state: paused;
+        }
+        @keyframes card-zoom {
+          to { transform: scale(1.18); }
+        }
+      `}</style>
     </div>
   )
 }
@@ -82,7 +128,7 @@ export default function MemoriesSection() {
       <AnimatedText text="Photo Memories" className="text-3xl md:text-5xl font-heading text-rose-200 mb-3 text-center" />
       <p className="text-white/30 font-sans text-sm tracking-widest uppercase mb-10 text-center">A collection of special moments</p>
 
-      <div className="-mt-24"><KamCarousel images={images} onSelect={setSelectedImage} /></div>
+      <HorizontalMarquee images={images} onSelect={setSelectedImage} />
 
       <AnimatePresence>
         {selectedImage && (
@@ -104,10 +150,6 @@ export default function MemoriesSection() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      <style>{`
-        @keyframes ry { to { rotate: y 1turn } }
-      `}</style>
     </SectionWrapper>
   )
 }
