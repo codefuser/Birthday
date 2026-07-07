@@ -4,49 +4,9 @@ import SectionWrapper from '../ui/SectionWrapper'
 import AnimatedText from '../ui/AnimatedText'
 import { birthdayConfig } from '../../config/birthday'
 
-type Size = { radius: number; width: number }
-
-function getSize(): Size {
-  const w = window.innerWidth
-  if (w < 480) return { radius: 140, width: 170 }
-  if (w < 768) return { radius: 180, width: 200 }
-  if (w < 1024) return { radius: 320, width: 260 }
-  if (w < 1440) return { radius: 480, width: 300 }
-  return { radius: 600, width: 330 }
-}
-
-function activeIndex(angle: number, n: number): number {
-  const step = 360 / n
-  let minD = Infinity
-  let idx = 0
-  for (let i = 0; i < n; i++) {
-    let d = ((angle + i * step) % 360 + 360) % 360
-    if (d > 180) d = 360 - d
-    if (d < minD) { minD = d; idx = i }
-  }
-  return idx
-}
-
-const stylesId = 'memories-carousel-styles'
-function injectStyles() {
-  if (typeof document === 'undefined' || document.getElementById(stylesId)) return
-  const s = document.createElement('style')
-  s.id = stylesId
-  s.textContent = `
-    @keyframes carousel-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
-    @keyframes carousel-float-sm { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
-    @keyframes particle-float { 0%{opacity:0;transform:translateY(0) scale(0)} 20%{opacity:0.6} 80%{opacity:0.4} 100%{opacity:0;transform:translateY(-40px) scale(1)} }
-    .carousel-scale-float { animation: carousel-float 3.5s ease-in-out infinite; }
-    .carousel-scale-float-sm { animation: carousel-float-sm 3.5s ease-in-out infinite; }
-  `
-  document.head.appendChild(s)
-}
-
 export default function MemoriesSection() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const images = birthdayConfig.photos
-
-  useEffect(() => { injectStyles() }, [])
 
   if (images.length === 0) {
     return (
@@ -59,11 +19,12 @@ export default function MemoriesSection() {
       </SectionWrapper>
     )
   }
+
   return (
     <SectionWrapper className="bg-galaxy" id="memories" transitionType="lightBurst">
       <AnimatedText text="Photo Memories" className="text-3xl md:text-5xl font-heading text-rose-200 mb-3 text-center" />
       <p className="text-white/30 font-sans text-sm tracking-widest uppercase mb-8 text-center">A collection of special moments</p>
-      <CircularCarousel images={images} onSelect={setSelectedImage} />
+      <FilmstripCarousel images={images} onSelect={setSelectedImage} />
       <AnimatePresence>
         {selectedImage && (
           <motion.div
@@ -88,120 +49,58 @@ export default function MemoriesSection() {
   )
 }
 
-const ARC_DEG = 50
-const MAX_VISIBLE = 4
-const RAD = Math.PI / 180
-
-type SlideData = { offset: number; closeness: number; visible: boolean; x: number; z: number; rY: number; s: number; op: number; blur: number; bright: number }
-
-function slideData(offset: number, maxV: number): SlideData {
-  const absO = Math.abs(offset)
-  const visible = absO <= maxV && absO >= 0
-  const closeness = visible ? 1 - absO / maxV : 0
-  const angle = offset * ARC_DEG
-  const radA = angle * RAD
-  const { radius } = getSize()
-  return {
-    offset, closeness, visible,
-    x: Math.sin(radA) * radius,
-    z: Math.cos(radA) * radius - radius,
-    rY: angle * 0.65,
-    s: 0.5 + 0.5 * closeness,
-    op: 0.08 + 0.92 * closeness,
-    blur: (1 - closeness) * 3,
-    bright: 0.3 + 0.7 * closeness,
-  }
-}
-
-function CircularCarousel({ images, onSelect }: { images: string[]; onSelect: (src: string) => void }) {
-  const [pos, setPos] = useState(0)
-  const [size, setSize] = useState<Size>(() => getSize())
-  const posRef = useRef(0)
-  const targetRef = useRef<number | null>(null)
-  const velRef = useRef(0)
-  const dragStartRef = useRef(0)
-  const dragPosRef = useRef(0)
+function FilmstripCarousel({ images, onSelect }: { images: string[]; onSelect: (src: string) => void }) {
+  const scrollRef = useRef<HTMLDivElement>(null!)
+  const thumbRef = useRef<HTMLDivElement>(null!)
+  const [idx, setIdx] = useState(0)
   const isDraggingRef = useRef(false)
-  const hoveredRef = useRef(false)
-  const lastTimeRef = useRef(0)
-  const rafRef = useRef(0)
+  const isScrollingRef = useRef(false)
+  const dragStart = useRef(0)
+  const scrollStart = useRef(0)
 
-  const n = images.length
+  const goTo = useCallback((i: number) => {
+    const n = images.length
+    const target = ((i % n) + n) % n
+    setIdx(target)
+    const slide = scrollRef.current?.children[target] as HTMLElement
+    if (slide) slide.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+  }, [images.length])
 
-  useEffect(() => {
-    const onResize = () => setSize(getSize())
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
-  }, [])
-
-  useEffect(() => {
-    const tick = (time: number) => {
-      const dt = lastTimeRef.current === 0 ? 1 : Math.min((time - lastTimeRef.current) / 16.67, 3)
-      lastTimeRef.current = time
-      let cur = posRef.current
-
-      if (!isDraggingRef.current) {
-        if (targetRef.current !== null) {
-          let diff = targetRef.current - cur
-          cur += diff * Math.min(0.08 * dt, 1)
-          if (Math.abs(diff) < 0.01) {
-            cur = targetRef.current
-            targetRef.current = null
-            velRef.current = 0
-          }
-        } else {
-          if (Math.abs(velRef.current) > 0.001) {
-            cur += velRef.current * dt
-            velRef.current *= Math.pow(0.9, dt)
-          } else {
-            velRef.current = 0
-            if (!hoveredRef.current) cur += 0.004 * dt
-          }
-        }
-      }
-
-      posRef.current = cur
-      setPos(cur)
-      rafRef.current = requestAnimationFrame(tick)
-    }
-    lastTimeRef.current = 0
-    rafRef.current = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(rafRef.current)
-  }, [])
-
-  const aIdx = ((Math.round(pos) % n) + n) % n
-
-  const advance = useCallback((dir: number) => {
-    targetRef.current = posRef.current + dir
-  }, [])
-
-  const goToSlide = useCallback((idx: number) => {
-    let diff = idx - posRef.current
-    if (diff > n / 2) diff -= n
-    if (diff < -n / 2) diff += n
-    targetRef.current = posRef.current + diff
-  }, [n])
+  const advance = useCallback((dir: number) => goTo(idx + dir), [goTo, idx])
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
-    dragStartRef.current = e.clientX
-    dragPosRef.current = posRef.current
     isDraggingRef.current = true
-    targetRef.current = null
+    isScrollingRef.current = false
+    dragStart.current = e.clientX
+    scrollStart.current = scrollRef.current.scrollLeft
   }, [])
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
     if (!isDraggingRef.current) return
-    const dx = e.clientX - dragStartRef.current
-    posRef.current = dragPosRef.current + dx * 0.005
-    setPos(posRef.current)
+    const dx = e.clientX - dragStart.current
+    if (Math.abs(dx) > 5) isScrollingRef.current = true
+    scrollRef.current.scrollLeft = scrollStart.current - dx
   }, [])
 
   const onPointerUp = useCallback(() => {
-    if (isDraggingRef.current) {
-      velRef.current = (posRef.current - dragPosRef.current) * 0.06
+    if (!isScrollingRef.current) {
+      const i = Math.round(scrollRef.current.scrollLeft / scrollRef.current.clientWidth)
+      goTo(i)
+    } else {
+      const slides = scrollRef.current.children
+      let closest = 0
+      let minDist = Infinity
+      for (let i = 0; i < slides.length; i++) {
+        const el = slides[i] as HTMLElement
+        const rect = el.getBoundingClientRect()
+        const parentRect = scrollRef.current.getBoundingClientRect()
+        const dist = Math.abs(rect.left + rect.width / 2 - parentRect.left - parentRect.width / 2)
+        if (dist < minDist) { minDist = dist; closest = i }
+      }
+      setIdx(closest)
     }
     isDraggingRef.current = false
-  }, [])
+  }, [goTo])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -212,145 +111,155 @@ function CircularCarousel({ images, onSelect }: { images: string[]; onSelect: (s
     return () => window.removeEventListener('keydown', handler)
   }, [advance])
 
-  const onWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault()
-    targetRef.current = posRef.current + (e.deltaY > 0 ? 1 : -1)
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    let ticking = false
+    const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const slides = el.children
+          let closest = 0
+          let minDist = Infinity
+          for (let i = 0; i < slides.length; i++) {
+            const s = slides[i] as HTMLElement
+            const r = s.getBoundingClientRect()
+            const pr = el.getBoundingClientRect()
+            const d = Math.abs(r.left + r.width / 2 - pr.left - pr.width / 2)
+            if (d < minDist) { minDist = d; closest = i }
+          }
+          setIdx(closest)
+          ticking = false
+        })
+        ticking = true
+      }
+    }
+    el.addEventListener('scroll', onScroll, { passive: true })
+    return () => el.removeEventListener('scroll', onScroll)
   }, [])
 
-  const { radius, width } = size
-  const height = width * 1.25
-
-  const slides: (SlideData & { src: string; i: number })[] = []
-  for (let i = 0; i < n; i++) {
-    let offset = i - aIdx
-    if (offset > n / 2) offset -= n
-    if (offset < -n / 2) offset += n
-    const sd = slideData(offset, MAX_VISIBLE)
-    slides.push({ ...sd, src: images[i], i })
-  }
+  const n = images.length
+  const thumbW = 56
 
   return (
-    <div
-      className="relative w-full select-none touch-none"
-      style={{ perspective: '1800px', height: `min(${height + 160}px, 80dvh)` }}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerLeave={onPointerUp}
-      onWheel={onWheel}
-      onMouseEnter={() => { hoveredRef.current = true }}
-      onMouseLeave={() => { hoveredRef.current = false }}
-    >
+    <div className="relative w-full select-none">
+      <div
+        ref={scrollRef}
+        className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar"
+        style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerLeave={onPointerUp}
+      >
+        {images.map((src, i) => {
+          const isActive = i === idx
+          return (
+            <div
+              key={i}
+              className="snap-center shrink-0 flex items-center justify-center"
+              style={{
+                flex: '0 0 100%',
+                scrollSnapAlign: 'center',
+              }}
+            >
+              <div
+                onClick={() => { if (!isScrollingRef.current) onSelect(src) }}
+                className="relative cursor-pointer"
+                style={{
+                  width: 'min(320px, 60vw)',
+                  aspectRatio: '4 / 5',
+                  borderRadius: '24px',
+                  overflow: 'hidden',
+                  border: isActive ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(255,255,255,0.04)',
+                  boxShadow: isActive
+                    ? '0 0 60px rgba(244,63,94,0.15), 0 30px 80px rgba(0,0,0,0.5)'
+                    : '0 8px 32px rgba(0,0,0,0.3)',
+                  transition: 'box-shadow 0.5s ease, border-color 0.5s ease',
+                  transform: isActive ? 'scale(1)' : 'scale(0.88)',
+                  filter: isActive ? 'brightness(1)' : 'brightness(0.5) blur(1px)',
+                  transitionProperty: 'transform, filter, box-shadow, border-color',
+                  transitionDuration: '0.5s',
+                  transitionTimingFunction: 'cubic-bezier(0.25, 0.1, 0.25, 1)',
+                }}
+              >
+                <img
+                  src={src}
+                  alt={`Memory ${i + 1}`}
+                  className="w-full h-full"
+                  style={{ objectFit: 'cover', aspectRatio: '4 / 5' }}
+                  draggable={false}
+                />
+                {isActive && (
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background: 'linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.5) 100%)',
+                    }}
+                  />
+                )}
+                {isActive && (
+                  <div
+                    className="absolute bottom-3 left-1/2 -translate-x-1/2 pointer-events-none"
+                    style={{
+                      fontFamily: 'var(--font-sans)',
+                      fontSize: 'clamp(10px, 1.2vw, 12px)',
+                      color: 'rgba(255,255,255,0.5)',
+                      letterSpacing: '0.15em',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    {i + 1} / {n}
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
       <button
         onClick={() => advance(1)}
-        className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/[0.04] backdrop-blur border border-white/10 flex items-center justify-center text-white/30 hover:text-white hover:bg-white/15 transition-all duration-300 text-xl md:text-2xl"
+        className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-10 w-9 h-9 md:w-11 md:h-11 rounded-full bg-white/[0.04] backdrop-blur border border-white/10 flex items-center justify-center text-white/30 hover:text-white hover:bg-white/15 transition-all duration-300 text-lg md:text-xl"
+        style={{ marginTop: '-5%' }}
       >
         ‹
       </button>
       <button
         onClick={() => advance(-1)}
-        className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/[0.04] backdrop-blur border border-white/10 flex items-center justify-center text-white/30 hover:text-white hover:bg-white/15 transition-all duration-300 text-xl md:text-2xl"
+        className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-10 w-9 h-9 md:w-11 md:h-11 rounded-full bg-white/[0.04] backdrop-blur border border-white/10 flex items-center justify-center text-white/30 hover:text-white hover:bg-white/15 transition-all duration-300 text-lg md:text-xl"
+        style={{ marginTop: '-5%' }}
       >
         ›
       </button>
 
-      <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
-        <div className="relative" style={{ transformStyle: 'preserve-3d' }}>
-          {slides.map((s) => {
-            if (!s.visible) return null
-            const isActive = s.i === aIdx
-            return (
-              <div
-                key={s.i}
-                onClick={() => goToSlide(s.i)}
-                className="absolute cursor-pointer"
-                style={{
-                  width,
-                  height,
-                  transform: `translateX(${s.x}px) translateZ(${s.z}px) rotateY(${s.rY}deg)`,
-                  transformStyle: 'preserve-3d',
-                  transition: 'transform 0.7s cubic-bezier(0.25, 0.1, 0.25, 1)',
-                }}
-              >
-                <div style={{ transform: `scale(${s.s})`, transformOrigin: 'center center' }}>
-                  <div className={isActive ? 'carousel-scale-float' : ''}>
-                    <div
-                      style={{
-                        width,
-                        height,
-                        borderRadius: '20px',
-                        overflow: 'hidden',
-                        border: `1px solid rgba(255,255,255,${isActive ? 0.18 : 0.04})`,
-                        background: 'rgba(0,0,0,0.4)',
-                        boxShadow: isActive
-                          ? '0 0 50px rgba(244,63,94,0.2), 0 25px 80px rgba(0,0,0,0.6)'
-                          : `0 8px 32px rgba(0,0,0,${0.15 + 0.35 * s.closeness})`,
-                        opacity: s.op,
-                        filter: `brightness(${s.bright}) blur(${Math.round(s.blur * 10) / 10}px)`,
-                        transition: 'box-shadow 0.5s ease, opacity 0.5s ease, filter 0.5s ease',
-                      }}
-                    >
-                      <img
-                        src={s.src}
-                        alt={`Memory ${s.i + 1}`}
-                        className="w-full h-full"
-                        style={{ objectFit: 'cover', aspectRatio: '4 / 5' }}
-                        draggable={false}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-
-        <div
-          className="absolute pointer-events-none"
-          style={{
-            width: width * 1.2,
-            height: height * 0.6,
-            borderRadius: '50%',
-            background: `radial-gradient(ellipse, rgba(244,63,94,${0.03 + 0.07 * (slides.find(s => s.i === aIdx)?.closeness ?? 0)}), transparent 70%)`,
-            transform: 'translateZ(-10px)',
-          }}
-        />
-
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
-          {images.map((_, i) => (
+      <div className="flex justify-center gap-1.5 mt-6" ref={thumbRef}>
+        {images.map((src, i) => {
+          const isActive = i === idx
+          return (
             <button
               key={i}
-              onClick={() => goToSlide(i)}
-              className="rounded-full transition-all duration-500"
+              onClick={() => goTo(i)}
+              className="overflow-hidden rounded-md transition-all duration-500"
               style={{
-                width: i === aIdx ? 20 : 5,
-                height: 5,
-                background: i === aIdx ? 'rgba(244,63,94,0.7)' : 'rgba(255,255,255,0.12)',
+                width: isActive ? thumbW + 8 : thumbW,
+                height: isActive ? thumbW * 1.25 + 8 : thumbW * 1.25,
+                opacity: isActive ? 1 : 0.35,
+                border: isActive ? '2px solid rgba(244,63,94,0.5)' : '2px solid transparent',
+                filter: isActive ? 'brightness(1)' : 'brightness(0.5)',
+                transition: 'all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)',
               }}
-            />
-          ))}
-        </div>
-      </div>
-
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {[...Array(15)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-0.5 h-0.5 rounded-full bg-white/20"
-            style={{ left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%` }}
-            animate={{
-              opacity: [0, 0.5, 0],
-              y: [0, -20 - Math.random() * 30],
-              x: [0, (Math.random() - 0.5) * 15],
-            }}
-            transition={{
-              duration: 2.5 + Math.random() * 3,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-              ease: 'easeInOut',
-            }}
-          />
-        ))}
+            >
+              <img
+                src={src}
+                alt=""
+                className="w-full h-full"
+                style={{ objectFit: 'cover' }}
+                draggable={false}
+              />
+            </button>
+          )
+        })}
       </div>
     </div>
   )
