@@ -2,101 +2,122 @@ import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
+const GOLD_MAT = new THREE.MeshPhysicalMaterial({
+  color: '#C8A45C', metalness: 0.85, roughness: 0.15,
+  clearcoat: 0.4, clearcoatRoughness: 0.2,
+  envMapIntensity: 2.5,
+})
+
+const VELVET_MAT = new THREE.MeshPhysicalMaterial({
+  color: '#8B1A1A', roughness: 0.85, metalness: 0,
+  clearcoat: 0.05, sheen: 0.6, sheenColor: new THREE.Color('#5C1010'),
+  sheenRoughness: 0.3,
+})
+
+const DARK_CHOC = new THREE.MeshPhysicalMaterial({
+  color: '#2A1506', roughness: 0.25, metalness: 0.1,
+  clearcoat: 0.6, clearcoatRoughness: 0.1, envMapIntensity: 1.5,
+})
+
+const MILK_CHOC = new THREE.MeshPhysicalMaterial({
+  color: '#4A2810', roughness: 0.2, metalness: 0.05,
+  clearcoat: 0.7, clearcoatRoughness: 0.1, envMapIntensity: 1.5,
+})
+
+const WHITE_CHOC = new THREE.MeshPhysicalMaterial({
+  color: '#F5E6D0', roughness: 0.15, metalness: 0,
+  clearcoat: 0.8, clearcoatRoughness: 0.05, envMapIntensity: 1.5,
+})
+
+const BOX_INNER = new THREE.MeshPhysicalMaterial({
+  color: '#1A0A05', roughness: 0.9, metalness: 0,
+})
+
 export function GiftScene1() {
   const group = useRef<THREE.Group>(null!)
-  const lid = useRef<THREE.Mesh>(null!)
-  const t = useRef(0)
+  const lid = useRef<THREE.Group>(null!)
   const sparkleRef = useRef<THREE.Points>(null!)
-  const heartRef = useRef<THREE.Group>(null!)
+  const t = useRef(0)
 
   const sparklePos = useMemo(() => {
-    const p = new Float32Array(40 * 3)
-    for (let i = 0; i < 40; i++) {
-      p[i * 3] = (Math.random() - 0.5) * 3
-      p[i * 3 + 1] = Math.random() * 2 + 0.3
-      p[i * 3 + 2] = (Math.random() - 0.5) * 3
+    const p = new Float32Array(50 * 3)
+    for (let i = 0; i < 50; i++) {
+      p[i * 3] = (Math.random() - 0.5) * 1.2
+      p[i * 3 + 1] = Math.random() * 1.0
+      p[i * 3 + 2] = (Math.random() - 0.5) * 1.2
     }
     return p
   }, [])
 
-  const chocolatePos = useMemo(() => {
-    const pos: [number, number, number][] = []
-    for (let x = -0.2; x <= 0.2; x += 0.2) {
-      for (let z = -0.2; z <= 0.2; z += 0.2) {
-        pos.push([x, 0.09, z])
-      }
-    }
-    return pos
-  }, [])
+  const chocData = useMemo(() => [
+    { pos: [-0.18, 0.07, -0.18], mat: DARK_CHOC, s: [0.08, 0.04, 0.08] },
+    { pos: [0.18, 0.07, -0.18], mat: MILK_CHOC, s: [0.08, 0.04, 0.08] },
+    { pos: [-0.18, 0.07, 0.18], mat: WHITE_CHOC, s: [0.08, 0.04, 0.08] },
+    { pos: [0.18, 0.07, 0.18], mat: DARK_CHOC, s: [0.08, 0.04, 0.08] },
+    { pos: [0, 0.07, -0.1], mat: MILK_CHOC, s: [0.06, 0.035, 0.06] },
+    { pos: [0, 0.07, 0.1], mat: WHITE_CHOC, s: [0.06, 0.035, 0.06] },
+    { pos: [-0.1, 0.07, 0], mat: DARK_CHOC, s: [0.06, 0.035, 0.06] },
+    { pos: [0.1, 0.07, 0], mat: MILK_CHOC, s: [0.06, 0.035, 0.06] },
+  ], [])
 
   useFrame((_, delta) => {
     t.current += delta
     if (lid.current) {
-      lid.current.rotation.x = -0.8 + Math.sin(t.current * 0.4) * 0.05
+      lid.current.rotation.x = -1.0 + Math.sin(t.current * 0.3) * 0.04
     }
     if (sparkleRef.current) {
       const op = sparkleRef.current.geometry.attributes.opacity?.array as Float32Array
       if (op) {
-        for (let i = 0; i < 40; i++) {
-          op[i] = 0.3 + Math.sin(t.current * 2 + i) * 0.3
+        for (let i = 0; i < 50; i++) {
+          op[i] = 0.2 + Math.sin(t.current * 1.5 + i * 0.9) * 0.25
         }
         sparkleRef.current.geometry.attributes.opacity.needsUpdate = true
       }
-    }
-    if (heartRef.current) {
-      heartRef.current.position.y = 0.55 + Math.sin(t.current * 1.2) * 0.08
-      heartRef.current.scale.setScalar(1 + Math.sin(t.current * 1.5) * 0.08)
     }
   })
 
   return (
     <group ref={group}>
-      <ambientLight intensity={0.5} />
-      <pointLight position={[1, 2, 2]} intensity={0.8} color="#fcd34d" />
-      <pointLight position={[-1, 0.5, -1]} intensity={0.4} color="#f43f5e" />
-
-      <mesh position={[0, 0, 0]} castShadow>
-        <boxGeometry args={[0.6, 0.18, 0.6]} />
-        <meshPhysicalMaterial color="#5c2e16" roughness={0.4} metalness={0.3} clearcoat={0.2} />
+      <mesh position={[0, -0.02, 0]} castShadow>
+        <boxGeometry args={[0.52, 0.06, 0.52]} />
+        <primitive object={VELVET_MAT} attach="material" />
       </mesh>
 
-      <mesh ref={lid} position={[0, 0.14, 0]} castShadow>
-        <boxGeometry args={[0.62, 0.04, 0.62]} />
-        <meshPhysicalMaterial color="#7a3b1a" roughness={0.3} metalness={0.4} clearcoat={0.3} />
+      <mesh position={[0, 0.02, 0]}>
+        <boxGeometry args={[0.44, 0.02, 0.44]} />
+        <primitive object={BOX_INNER} attach="material" />
       </mesh>
 
-      <mesh position={[0, 0.05, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[0.4, 0.4]} />
-        <meshPhysicalMaterial color="#3d1e0c" roughness={0.8} metalness={0.1} />
-      </mesh>
-
-      {chocolatePos.map((pos, i) => (
-        <mesh key={i} position={pos} castShadow>
-          <boxGeometry args={[0.08, 0.05, 0.08]} />
-          <meshPhysicalMaterial
-            color={['#3d1e0c', '#4a2810', '#2a1508', '#5c2e16'][i % 4]}
-            roughness={0.3}
-            metalness={0.6}
-            emissive={['#fcd34d', '#f43f5e', '#a78bfa', '#34d399'][i % 4]}
-            emissiveIntensity={0.15}
-          />
+      {chocData.map((c, i) => (
+        <mesh key={i} position={c.pos as [number, number, number]} castShadow>
+          <boxGeometry args={c.s as [number, number, number]} />
+          <primitive object={c.mat} attach="material" />
         </mesh>
       ))}
+
+      <group ref={lid} position={[0, 0.08, 0]}>
+        <mesh position={[0, 0.02, 0]} castShadow>
+          <boxGeometry args={[0.54, 0.04, 0.54]} />
+          <primitive object={GOLD_MAT} attach="material" />
+        </mesh>
+        <mesh position={[0, 0, 0.27]}>
+          <boxGeometry args={[0.1, 0.006, 0.01]} />
+          <primitive object={GOLD_MAT} attach="material" />
+        </mesh>
+      </group>
+
+      <mesh position={[0, 0.04, 0]}>
+        <torusGeometry args={[0.24, 0.008, 8, 24]} />
+        <primitive object={new THREE.MeshPhysicalMaterial({ color: '#C8A45C', metalness: 0.9, roughness: 0.1, envMapIntensity: 2 })} attach="material" />
+      </mesh>
 
       <points ref={sparkleRef}>
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[sparklePos, 3]} />
-          <bufferAttribute attach="attributes-opacity" args={[new Float32Array(40).fill(0.5), 1]} />
+          <bufferAttribute attach="attributes-opacity" args={[new Float32Array(50).fill(0.5), 1]} />
         </bufferGeometry>
-        <pointsMaterial size={0.02} color="#fcd34d" transparent opacity={0.6} sizeAttenuation blending={THREE.AdditiveBlending} />
+        <pointsMaterial size={0.012} color="#fcd34d" transparent opacity={0.6} sizeAttenuation blending={THREE.AdditiveBlending} depthWrite={false} />
       </points>
-
-      <group ref={heartRef}>
-        <mesh position={[0, 0.5, 0]}>
-          <sphereGeometry args={[0.03, 6, 6]} />
-          <meshPhysicalMaterial color="#f43f5e" emissive="#f43f5e" emissiveIntensity={0.2} />
-        </mesh>
-      </group>
     </group>
   )
 }
