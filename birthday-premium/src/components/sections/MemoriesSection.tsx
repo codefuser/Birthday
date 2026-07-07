@@ -7,7 +7,7 @@ import { birthdayConfig } from '../../config/birthday'
 function KamCarousel({ images, onSelect }: { images: string[]; onSelect: (src: string) => void }) {
   const n = images.length
 
-  const cardW = 400
+  const cardW = 440
   const ba = 360 / n
   const zDist = -(cardW * 0.5 + 8) / Math.tan((ba * 0.5) * Math.PI / 180)
 
@@ -17,8 +17,8 @@ function KamCarousel({ images, onSelect }: { images: string[]; onSelect: (src: s
       style={{
         height: `min(40rem, 65dvh)`,
         perspective: '50em',
-        mask: 'linear-gradient(90deg, transparent, black 20% 80%, transparent)',
-        WebkitMask: 'linear-gradient(90deg, transparent, black 20% 80%, transparent)',
+        mask: 'linear-gradient(90deg, transparent 5%, black 12% 88%, transparent 95%)',
+        WebkitMask: 'linear-gradient(90deg, transparent 5%, black 12% 88%, transparent 95%)',
       }}
     >
       <div className="flex items-center justify-center w-full h-full" style={{ transformStyle: 'preserve-3d' }}>
@@ -76,8 +76,8 @@ export default function MemoriesSection() {
   }
 
   return (
-    <SectionWrapper className="bg-galaxy pt-12 pb-16 md:pt-20 md:pb-28 overflow-x-hidden" id="memories" transitionType="lightBurst">
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0b0a1a] pointer-events-none z-20" />
+    <SectionWrapper className="bg-galaxy py-12 md:py-20 overflow-x-hidden" id="memories" transitionType="lightBurst">
+      <div className="absolute inset-0 pointer-events-none z-20" style={{ background: 'linear-gradient(to bottom, transparent 40%, rgba(10,10,26,0.6) 75%, #0a0a1a 100%)' }} />
 
       <AnimatedText text="Photo Memories" className="text-3xl md:text-5xl font-heading text-rose-200 mb-3 text-center" />
       <p className="text-white/30 font-sans text-sm tracking-widest uppercase mb-10 text-center">A collection of special moments</p>
