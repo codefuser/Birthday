@@ -1,7 +1,0 @@
-export { GiftScene1 } from './GiftScene1'
-export { GiftScene2 } from './GiftScene2'
-export { GiftScene3 } from './GiftScene3'
-export { GiftScene4 } from './GiftScene4'
-export { GiftScene5 } from './GiftScene5'
-export { GiftScene6 } from './GiftScene6'
-export { GiftPopup } from './GiftPopup'
