@@ -8,7 +8,7 @@ function KamCarousel({ images, onSelect }: { images: string[]; onSelect: (src: s
   const [paused, setPaused] = useState(false)
   const n = images.length
 
-  const cardW = 280
+  const cardW = 320
   const ba = 360 / n
   const zDist = -(cardW * 0.5 + 8) / Math.tan((ba * 0.5) * Math.PI / 180)
 
@@ -16,7 +16,7 @@ function KamCarousel({ images, onSelect }: { images: string[]; onSelect: (src: s
     <div
       className="relative w-full select-none"
       style={{
-        height: `min(45rem, 80dvh)`,
+        height: `min(35rem, 65dvh)`,
         perspective: '35em',
         mask: 'linear-gradient(90deg, transparent, black 20% 80%, transparent)',
         WebkitMask: 'linear-gradient(90deg, transparent, black 20% 80%, transparent)',
@@ -79,7 +79,7 @@ export default function MemoriesSection() {
   }
 
   return (
-    <SectionWrapper className="bg-galaxy pt-20 pb-28" id="memories" transitionType="lightBurst">
+    <SectionWrapper className="bg-galaxy pt-12 pb-16 md:pt-20 md:pb-28" id="memories" transitionType="lightBurst">
       <AnimatedText text="Photo Memories" className="text-3xl md:text-5xl font-heading text-rose-200 mb-3 text-center" />
       <p className="text-white/30 font-sans text-sm tracking-widest uppercase mb-10 text-center">A collection of special moments</p>
 
