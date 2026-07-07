@@ -4,9 +4,7 @@ import SectionWrapper from '../ui/SectionWrapper'
 import AnimatedText from '../ui/AnimatedText'
 import { birthdayConfig } from '../../config/birthday'
 
-const STEP_DEG = 30 // degrees between each card on the ring
 const RAD = Math.PI / 180
-const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
 
 function getRadius(): number {
   const w = window.innerWidth
@@ -41,7 +39,7 @@ export default function MemoriesSection() {
     <SectionWrapper className="bg-galaxy" id="memories" transitionType="lightBurst">
       <AnimatedText text="Photo Memories" className="text-3xl md:text-5xl font-heading text-rose-200 mb-3 text-center" />
       <p className="text-white/30 font-sans text-sm tracking-widest uppercase mb-8 text-center">A collection of special moments</p>
-      <RingCarousel images={images} onSelect={setSelectedImage} />
+      <InfiniteRingCarousel images={images} onSelect={setSelectedImage} />
       <AnimatePresence>
         {selectedImage && (
           <motion.div
@@ -66,9 +64,9 @@ export default function MemoriesSection() {
   )
 }
 
-type Card = { i: number; src: string; zF: number; cn: number; off: number }
+type CardData = { i: number; src: string; off: number; zF: number; cn: number }
 
-function RingCarousel({ images, onSelect }: { images: string[]; onSelect: (src: string) => void }) {
+function InfiniteRingCarousel({ images, onSelect }: { images: string[]; onSelect: (src: string) => void }) {
   const ringRef = useRef<HTMLDivElement>(null!)
   const [activeIdx, setActiveIdx] = useState(0)
   const [radius, setRadius] = useState(getRadius)
@@ -78,7 +76,6 @@ function RingCarousel({ images, onSelect }: { images: string[]; onSelect: (src: 
   const dragStartX = useRef(0)
   const dragBaseAngle = useRef(0)
   const autoTimer = useRef<number | undefined>(undefined)
-  const snapTimer = useRef<number | undefined>(undefined)
 
   const n = images.length
   const step = 360 / n
@@ -99,7 +96,7 @@ function RingCarousel({ images, onSelect }: { images: string[]; onSelect: (src: 
       el.style.transform = `rotateY(${target}deg)`
       el.style.transition = ''
     } else {
-      el.style.transition = `transform 0.8s ${EASE}`
+      el.style.transition = `transform 0.85s cubic-bezier(0.22, 1, 0.36, 1)`
       el.style.transform = `rotateY(${target}deg)`
     }
   }, [step])
@@ -110,17 +107,19 @@ function RingCarousel({ images, onSelect }: { images: string[]; onSelect: (src: 
     rotateTo(target)
   }, [n, rotateTo])
 
+  // Auto-rotate: purely CSS-driven for buttery smoothness
   useEffect(() => {
     if (!isHovered && !isDragging.current) {
-      autoTimer.current = setTimeout(() => goTo(activeIdx + 1), 3500)
+      autoTimer.current = window.setTimeout(() => goTo(activeIdx + 1), 3500)
     }
-    return () => clearTimeout(autoTimer.current)
+    return () => {
+      if (autoTimer.current !== undefined) window.clearTimeout(autoTimer.current)
+    }
   }, [activeIdx, isHovered, goTo])
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     isDragging.current = true
-    clearTimeout(autoTimer.current)
-    clearTimeout(snapTimer.current)
+    autoTimer.current !== undefined && window.clearTimeout(autoTimer.current)
     dragStartX.current = e.clientX
     const el = ringRef.current
     if (el) {
@@ -150,7 +149,7 @@ function RingCarousel({ images, onSelect }: { images: string[]; onSelect: (src: 
     const nearestIdx = Math.round(-currentAngle / step)
     const clamped = ((nearestIdx % n) + n) % n
     setActiveIdx(clamped)
-    el.style.transition = `transform 0.6s ${EASE}`
+    el.style.transition = `transform 0.65s cubic-bezier(0.22, 1, 0.36, 1)`
     el.style.transform = `rotateY(${-clamped * step}deg)`
   }, [activeIdx, step, n])
 
@@ -170,15 +169,15 @@ function RingCarousel({ images, onSelect }: { images: string[]; onSelect: (src: 
     advance(e.deltaY > 0 ? 1 : -1)
   }, [advance])
 
-  const cards: Card[] = useMemo(() => {
-    const list: Card[] = []
+  const cards: CardData[] = useMemo(() => {
+    const list: CardData[] = []
     for (let i = 0; i < n; i++) {
       let off = i - activeIdx
       if (off > n / 2) off -= n
       if (off < -n / 2) off += n
       const zF = Math.cos(off * step * RAD)
       const cn = Math.max(0, (zF + 1) / 2)
-      list.push({ i, src: images[i], zF, cn, off })
+      list.push({ i, src: images[i], off, zF, cn })
     }
     return list.sort((a, b) => a.zF - b.zF)
   }, [activeIdx, images, n, step])
@@ -227,7 +226,7 @@ function RingCarousel({ images, onSelect }: { images: string[]; onSelect: (src: 
           style={{
             transformStyle: 'preserve-3d',
             transform: `rotateY(${-activeIdx * step}deg)`,
-            transition: 'none',
+            transition: `transform 0.85s cubic-bezier(0.22, 1, 0.36, 1)`,
           }}
         >
           {cards.map(c => {
@@ -268,7 +267,7 @@ function RingCarousel({ images, onSelect }: { images: string[]; onSelect: (src: 
                     opacity: op,
                     filter: `brightness(${br}) blur(${Math.round(bl * 10) / 10}px)`,
                     transform: `scale(${sc})`,
-                    transition: `opacity 0.8s ${EASE}, filter 0.8s ${EASE}, transform 0.8s ${EASE}, box-shadow 0.6s ease`,
+                    transition: `opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1), filter 0.85s cubic-bezier(0.22, 1, 0.36, 1), transform 0.85s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.6s ease`,
                   }}
                 >
                   {isActive && (
