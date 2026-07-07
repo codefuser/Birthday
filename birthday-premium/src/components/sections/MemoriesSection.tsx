@@ -88,22 +88,45 @@ export default function MemoriesSection() {
   )
 }
 
+const ARC_DEG = 50
+const MAX_VISIBLE = 4
+const RAD = Math.PI / 180
+
+type SlideData = { offset: number; closeness: number; visible: boolean; x: number; z: number; rY: number; s: number; op: number; blur: number; bright: number }
+
+function slideData(offset: number, maxV: number): SlideData {
+  const absO = Math.abs(offset)
+  const visible = absO <= maxV && absO >= 0
+  const closeness = visible ? 1 - absO / maxV : 0
+  const angle = offset * ARC_DEG
+  const radA = angle * RAD
+  const { radius } = getSize()
+  return {
+    offset, closeness, visible,
+    x: Math.sin(radA) * radius,
+    z: Math.cos(radA) * radius - radius,
+    rY: angle * 0.65,
+    s: 0.5 + 0.5 * closeness,
+    op: 0.08 + 0.92 * closeness,
+    blur: (1 - closeness) * 3,
+    bright: 0.3 + 0.7 * closeness,
+  }
+}
+
 function CircularCarousel({ images, onSelect }: { images: string[]; onSelect: (src: string) => void }) {
-  const [angle, setAngle] = useState(0)
+  const [pos, setPos] = useState(0)
   const [size, setSize] = useState<Size>(() => getSize())
-  const angleRef = useRef(0)
+  const posRef = useRef(0)
   const targetRef = useRef<number | null>(null)
   const velRef = useRef(0)
   const dragStartRef = useRef(0)
-  const dragAngleRef = useRef(0)
+  const dragPosRef = useRef(0)
   const isDraggingRef = useRef(false)
   const hoveredRef = useRef(false)
   const lastTimeRef = useRef(0)
   const rafRef = useRef(0)
-  const containerRef = useRef<HTMLDivElement>(null!)
 
   const n = images.length
-  const step = 360 / n
 
   useEffect(() => {
     const onResize = () => setSize(getSize())
@@ -115,15 +138,13 @@ function CircularCarousel({ images, onSelect }: { images: string[]; onSelect: (s
     const tick = (time: number) => {
       const dt = lastTimeRef.current === 0 ? 1 : Math.min((time - lastTimeRef.current) / 16.67, 3)
       lastTimeRef.current = time
-
-      let cur = angleRef.current
+      let cur = posRef.current
 
       if (!isDraggingRef.current) {
         if (targetRef.current !== null) {
           let diff = targetRef.current - cur
-          diff = ((diff % 360) + 540) % 360 - 180
-          cur += diff * Math.min(0.1 * dt, 1)
-          if (Math.abs(diff) < 0.15) {
+          cur += diff * Math.min(0.08 * dt, 1)
+          if (Math.abs(diff) < 0.01) {
             cur = targetRef.current
             targetRef.current = null
             velRef.current = 0
@@ -131,16 +152,16 @@ function CircularCarousel({ images, onSelect }: { images: string[]; onSelect: (s
         } else {
           if (Math.abs(velRef.current) > 0.001) {
             cur += velRef.current * dt
-            velRef.current *= Math.pow(0.92, dt)
+            velRef.current *= Math.pow(0.9, dt)
           } else {
             velRef.current = 0
-            if (!hoveredRef.current) cur += 0.1 * dt
+            if (!hoveredRef.current) cur += 0.004 * dt
           }
         }
       }
 
-      angleRef.current = cur
-      setAngle(cur)
+      posRef.current = cur
+      setPos(cur)
       rafRef.current = requestAnimationFrame(tick)
     }
     lastTimeRef.current = 0
@@ -148,27 +169,22 @@ function CircularCarousel({ images, onSelect }: { images: string[]; onSelect: (s
     return () => cancelAnimationFrame(rafRef.current)
   }, [])
 
-  const goTo = useCallback((target: number) => {
-    targetRef.current = target
-  }, [])
+  const aIdx = ((Math.round(pos) % n) + n) % n
 
   const advance = useCallback((dir: number) => {
-    targetRef.current = angleRef.current + dir * step
-  }, [step])
+    targetRef.current = posRef.current + dir
+  }, [])
 
   const goToSlide = useCallback((idx: number) => {
-    let target = (-idx * step) % 360
-    if (target < 0) target += 360
-    const cur = ((angleRef.current % 360) + 360) % 360
-    let diff = target - cur
-    if (diff > 180) diff -= 360
-    if (diff < -180) diff += 360
-    targetRef.current = angleRef.current + diff
-  }, [step])
+    let diff = idx - posRef.current
+    if (diff > n / 2) diff -= n
+    if (diff < -n / 2) diff += n
+    targetRef.current = posRef.current + diff
+  }, [n])
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     dragStartRef.current = e.clientX
-    dragAngleRef.current = angleRef.current
+    dragPosRef.current = posRef.current
     isDraggingRef.current = true
     targetRef.current = null
   }, [])
@@ -176,14 +192,13 @@ function CircularCarousel({ images, onSelect }: { images: string[]; onSelect: (s
   const onPointerMove = useCallback((e: React.PointerEvent) => {
     if (!isDraggingRef.current) return
     const dx = e.clientX - dragStartRef.current
-    angleRef.current = dragAngleRef.current + dx * 0.18
-    setAngle(angleRef.current)
+    posRef.current = dragPosRef.current + dx * 0.005
+    setPos(posRef.current)
   }, [])
 
   const onPointerUp = useCallback(() => {
     if (isDraggingRef.current) {
-      const dx = angleRef.current - dragAngleRef.current
-      velRef.current = dx * 0.08
+      velRef.current = (posRef.current - dragPosRef.current) * 0.06
     }
     isDraggingRef.current = false
   }, [])
@@ -199,24 +214,25 @@ function CircularCarousel({ images, onSelect }: { images: string[]; onSelect: (s
 
   const onWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault()
-    const dir = e.deltaY > 0 ? 1 : -1
-    targetRef.current = angleRef.current + dir * step
-  }, [step])
-
-  const idx = activeIndex(angle, n)
-  const aIdx = ((idx % n) + n) % n
-  const activeEffAngle = ((angle + aIdx * step) % 360 + 360) % 360
-  const activeEA180 = activeEffAngle > 180 ? 360 - activeEffAngle : activeEffAngle
-  const activeCloseness = Math.max(0, Math.cos((activeEA180 / 180) * Math.PI * 0.5))
+    targetRef.current = posRef.current + (e.deltaY > 0 ? 1 : -1)
+  }, [])
 
   const { radius, width } = size
   const height = width * 1.25
 
+  const slides: (SlideData & { src: string; i: number })[] = []
+  for (let i = 0; i < n; i++) {
+    let offset = i - aIdx
+    if (offset > n / 2) offset -= n
+    if (offset < -n / 2) offset += n
+    const sd = slideData(offset, MAX_VISIBLE)
+    slides.push({ ...sd, src: images[i], i })
+  }
+
   return (
     <div
-      ref={containerRef}
       className="relative w-full select-none touch-none"
-      style={{ perspective: '1800px', height: `min(${height + radius * 0.55 + 60}px, 80dvh)` }}
+      style={{ perspective: '1800px', height: `min(${height + 160}px, 80dvh)` }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -239,34 +255,24 @@ function CircularCarousel({ images, onSelect }: { images: string[]; onSelect: (s
       </button>
 
       <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
-        <div
-          className="relative"
-          style={{ transformStyle: 'preserve-3d', transform: `rotateY(${angle}deg)` }}
-        >
-          {images.map((src, i) => {
-            const sa = i * step
-            const effAngle = ((angle + sa) % 360 + 360) % 360
-            const effAngle180 = effAngle > 180 ? 360 - effAngle : effAngle
-            const closeness = Math.max(0, Math.cos((effAngle180 / 180) * Math.PI * 0.5))
-            const s = 0.55 + 0.45 * closeness
-            const op = 0.08 + 0.92 * closeness
-            const blur = Math.round((1 - closeness) * 3 * 10) / 10
-            const bright = 0.35 + 0.65 * closeness
-            const isActive = i === aIdx
-
+        <div className="relative" style={{ transformStyle: 'preserve-3d' }}>
+          {slides.map((s) => {
+            if (!s.visible) return null
+            const isActive = s.i === aIdx
             return (
               <div
-                key={i}
-                onClick={() => goToSlide(i)}
+                key={s.i}
+                onClick={() => goToSlide(s.i)}
                 className="absolute cursor-pointer"
                 style={{
                   width,
                   height,
-                  transform: `rotateY(${sa}deg) translateZ(${radius}px) rotateY(180deg)`,
+                  transform: `translateX(${s.x}px) translateZ(${s.z}px) rotateY(${s.rY}deg)`,
                   transformStyle: 'preserve-3d',
+                  transition: 'transform 0.7s cubic-bezier(0.25, 0.1, 0.25, 1)',
                 }}
               >
-                <div style={{ transform: `scale(${s})`, transformOrigin: 'center center' }}>
+                <div style={{ transform: `scale(${s.s})`, transformOrigin: 'center center' }}>
                   <div className={isActive ? 'carousel-scale-float' : ''}>
                     <div
                       style={{
@@ -274,19 +280,19 @@ function CircularCarousel({ images, onSelect }: { images: string[]; onSelect: (s
                         height,
                         borderRadius: '20px',
                         overflow: 'hidden',
-                        border: `1px solid rgba(255,255,255,${isActive ? 0.18 : 0.05})`,
+                        border: `1px solid rgba(255,255,255,${isActive ? 0.18 : 0.04})`,
                         background: 'rgba(0,0,0,0.4)',
                         boxShadow: isActive
-                          ? '0 0 40px rgba(244,63,94,0.15), 0 20px 60px rgba(0,0,0,0.5)'
-                          : `0 8px 32px rgba(0,0,0,${0.2 + 0.3 * closeness})`,
-                        opacity: op,
-                        filter: `brightness(${bright}) blur(${blur}px)`,
-                        transition: 'box-shadow 0.6s ease',
+                          ? '0 0 50px rgba(244,63,94,0.2), 0 25px 80px rgba(0,0,0,0.6)'
+                          : `0 8px 32px rgba(0,0,0,${0.15 + 0.35 * s.closeness})`,
+                        opacity: s.op,
+                        filter: `brightness(${s.bright}) blur(${Math.round(s.blur * 10) / 10}px)`,
+                        transition: 'box-shadow 0.5s ease, opacity 0.5s ease, filter 0.5s ease',
                       }}
                     >
                       <img
-                        src={src}
-                        alt={`Memory ${i + 1}`}
+                        src={s.src}
+                        alt={`Memory ${s.i + 1}`}
                         className="w-full h-full"
                         style={{ objectFit: 'cover', aspectRatio: '4 / 5' }}
                         draggable={false}
@@ -302,16 +308,14 @@ function CircularCarousel({ images, onSelect }: { images: string[]; onSelect: (s
         <div
           className="absolute pointer-events-none"
           style={{
-            width: width * 0.8,
-            height: height * 0.5,
+            width: width * 1.2,
+            height: height * 0.6,
             borderRadius: '50%',
-            background: `radial-gradient(ellipse, rgba(244,63,94,${0.03 + 0.05 * activeCloseness}), transparent 70%)`,
+            background: `radial-gradient(ellipse, rgba(244,63,94,${0.03 + 0.07 * (slides.find(s => s.i === aIdx)?.closeness ?? 0)}), transparent 70%)`,
             transform: 'translateZ(-10px)',
-            transition: 'opacity 0.8s ease',
           }}
         />
 
-        {/* dot indicators */}
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
           {images.map((_, i) => (
             <button
@@ -321,24 +325,23 @@ function CircularCarousel({ images, onSelect }: { images: string[]; onSelect: (s
               style={{
                 width: i === aIdx ? 20 : 5,
                 height: 5,
-                background: i === aIdx ? 'rgba(244,63,94,0.7)' : 'rgba(255,255,255,0.15)',
+                background: i === aIdx ? 'rgba(244,63,94,0.7)' : 'rgba(255,255,255,0.12)',
               }}
             />
           ))}
         </div>
       </div>
 
-      {/* particles */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {[...Array(20)].map((_, i) => (
+        {[...Array(15)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-0.5 h-0.5 rounded-full bg-white/30"
+            className="absolute w-0.5 h-0.5 rounded-full bg-white/20"
             style={{ left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%` }}
             animate={{
-              opacity: [0, 0.6, 0],
-              y: [0, -30 - Math.random() * 40],
-              x: [0, (Math.random() - 0.5) * 20],
+              opacity: [0, 0.5, 0],
+              y: [0, -20 - Math.random() * 30],
+              x: [0, (Math.random() - 0.5) * 15],
             }}
             transition={{
               duration: 2.5 + Math.random() * 3,
