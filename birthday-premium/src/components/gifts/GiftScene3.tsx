@@ -10,7 +10,7 @@ function createHeartShape(): THREE.Shape {
   return s
 }
 
-export function GiftScene3({ mouse }: { mouse: { x: number; y: number } }) {
+export function GiftScene3() {
   const group = useRef<THREE.Group>(null!)
   const locketLeft = useRef<THREE.Mesh>(null!)
   const locketRight = useRef<THREE.Mesh>(null!)
@@ -42,11 +42,6 @@ export function GiftScene3({ mouse }: { mouse: { x: number; y: number } }) {
 
   useFrame((_, delta) => {
     t.current += delta
-    if (group.current) {
-      group.current.rotation.y = Math.sin(t.current * 0.3) * 0.2 + mouse.x * 0.1
-      group.current.rotation.x = Math.sin(t.current * 0.15) * 0.05 + mouse.y * 0.06
-      group.current.position.y = Math.sin(t.current * 0.4) * 0.05
-    }
     if (locketLeft.current) {
       locketLeft.current.rotation.y = -0.3 + Math.sin(t.current * 0.5) * 0.05
     }

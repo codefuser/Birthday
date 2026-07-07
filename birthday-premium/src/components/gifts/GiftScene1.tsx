@@ -2,7 +2,7 @@ import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
-export function GiftScene1({ mouse }: { mouse: { x: number; y: number } }) {
+export function GiftScene1() {
   const group = useRef<THREE.Group>(null!)
   const lid = useRef<THREE.Mesh>(null!)
   const t = useRef(0)
@@ -31,12 +31,6 @@ export function GiftScene1({ mouse }: { mouse: { x: number; y: number } }) {
 
   useFrame((_, delta) => {
     t.current += delta
-    if (group.current) {
-      group.current.rotation.y = Math.sin(t.current * 0.3) * 0.15
-      group.current.position.y = Math.sin(t.current * 0.5) * 0.06
-      group.current.rotation.x = Math.sin(t.current * 0.2) * 0.02 + mouse.y * 0.05
-      group.current.rotation.z = Math.cos(t.current * 0.3) * 0.02 + mouse.x * 0.05
-    }
     if (lid.current) {
       lid.current.rotation.x = -0.8 + Math.sin(t.current * 0.4) * 0.05
     }

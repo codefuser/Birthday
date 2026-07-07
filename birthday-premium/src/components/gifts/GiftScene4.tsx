@@ -2,7 +2,7 @@ import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
-export function GiftScene4({ mouse }: { mouse: { x: number; y: number } }) {
+export function GiftScene4() {
   const group = useRef<THREE.Group>(null!)
   const scoop1 = useRef<THREE.Mesh>(null!)
   const scoop2 = useRef<THREE.Mesh>(null!)
@@ -23,11 +23,6 @@ export function GiftScene4({ mouse }: { mouse: { x: number; y: number } }) {
 
   useFrame((_, delta) => {
     t.current += delta
-    if (group.current) {
-      group.current.rotation.y = Math.sin(t.current * 0.25) * 0.2 + mouse.x * 0.08
-      group.current.rotation.x = Math.sin(t.current * 0.1) * 0.03 + mouse.y * 0.04
-      group.current.position.y = Math.sin(t.current * 0.45) * 0.05
-    }
     if (scoop1.current) {
       scoop1.current.position.y = 0.22 + Math.sin(t.current * 0.6) * 0.01
       scoop1.current.scale.setScalar(1 + Math.sin(t.current * 0.5) * 0.02)

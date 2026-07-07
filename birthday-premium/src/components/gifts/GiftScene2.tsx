@@ -15,7 +15,7 @@ function Heart({ pos, sc = 1, color = '#f43f5e' }: { pos: [number, number, numbe
   )
 }
 
-export function GiftScene2({ mouse }: { mouse: { x: number; y: number } }) {
+export function GiftScene2() {
   const group = useRef<THREE.Group>(null!)
   const body = useRef<THREE.Group>(null!)
   const head = useRef<THREE.Group>(null!)
@@ -35,13 +35,6 @@ export function GiftScene2({ mouse }: { mouse: { x: number; y: number } }) {
 
   useFrame((_, delta) => {
     t.current += delta
-    if (group.current) {
-      group.current.rotation.y = Math.sin(t.current * 0.2) * 0.2 + mouse.x * 0.08
-      group.current.rotation.x = mouse.y * 0.06
-    }
-    if (body.current) {
-      body.current.position.y = Math.sin(t.current * 0.6) * 0.03
-    }
     if (head.current) {
       head.current.rotation.z = Math.sin(t.current * 0.3) * 0.03
       head.current.rotation.x = Math.sin(t.current * 0.2) * 0.02

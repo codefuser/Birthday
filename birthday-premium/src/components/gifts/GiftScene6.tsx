@@ -2,7 +2,7 @@ import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
-export function GiftScene6({ mouse }: { mouse: { x: number; y: number } }) {
+export function GiftScene6() {
   const group = useRef<THREE.Group>(null!)
   const flame1 = useRef<THREE.Mesh>(null!)
   const flame2 = useRef<THREE.Mesh>(null!)
@@ -34,11 +34,6 @@ export function GiftScene6({ mouse }: { mouse: { x: number; y: number } }) {
 
   useFrame((_, delta) => {
     t.current += delta
-    if (group.current) {
-      group.current.rotation.y = Math.sin(t.current * 0.2) * 0.15 + mouse.x * 0.08
-      group.current.rotation.x = Math.sin(t.current * 0.1) * 0.02 + mouse.y * 0.04
-      group.current.position.y = Math.sin(t.current * 0.3) * 0.04
-    }
     if (flame1.current) {
       const flicker = 0.6 + Math.sin(t.current * 15) * 0.2 + Math.sin(t.current * 25) * 0.1
       flame1.current.scale.setScalar(flicker)

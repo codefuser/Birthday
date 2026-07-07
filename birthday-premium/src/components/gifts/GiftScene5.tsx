@@ -38,7 +38,7 @@ function Flower({ pos, color, phase, stemH = 0.3 }: { pos: [number, number, numb
   )
 }
 
-export function GiftScene5({ mouse }: { mouse: { x: number; y: number } }) {
+export function GiftScene5() {
   const group = useRef<THREE.Group>(null!)
   const leafRef = useRef<THREE.Group>(null!)
   const petalRef = useRef<THREE.Points>(null!)
@@ -64,11 +64,6 @@ export function GiftScene5({ mouse }: { mouse: { x: number; y: number } }) {
 
   useFrame((_, delta) => {
     t.current += delta
-    if (group.current) {
-      group.current.rotation.y = Math.sin(t.current * 0.15) * 0.25 + mouse.x * 0.1
-      group.current.rotation.x = Math.sin(t.current * 0.08) * 0.03 + mouse.y * 0.06
-      group.current.position.y = Math.sin(t.current * 0.35) * 0.04
-    }
     if (leafRef.current) {
       leafRef.current.rotation.y = Math.sin(t.current * 0.2) * 0.05
     }
