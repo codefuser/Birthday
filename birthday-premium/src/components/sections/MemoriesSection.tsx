@@ -4,27 +4,25 @@ import SectionWrapper from '../ui/SectionWrapper'
 import AnimatedText from '../ui/AnimatedText'
 import { birthdayConfig } from '../../config/birthday'
 
-type Sizes = { cw: number; aw: number; ow: number; maxV: number }
+const STEP_DEG = 30 // degrees between each card on the ring
+const RAD = Math.PI / 180
+const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
 
-function getSizes(): Sizes {
+function getRadius(): number {
   const w = window.innerWidth
-  if (w < 480) return { cw: Math.min(w * 0.75, 200), aw: 80, ow: 0, maxV: 1 }
-  if (w < 768) return { cw: Math.min(w * 0.5, 250), aw: 140, ow: 0, maxV: 1 }
-  if (w < 1024) return { cw: 270, aw: 210, ow: 0, maxV: 1 }
-  return { cw: 320, aw: 250, ow: 180, maxV: 2 }
+  if (w < 480) return 260
+  if (w < 768) return 340
+  if (w < 1024) return 440
+  return 560
 }
 
-function getPos(offset: number, s: Sizes): number {
-  if (offset === 0 || !s.aw) return 0
-  const absO = Math.abs(offset)
-  let p = s.cw / 2 + s.aw / 2 - Math.min(s.cw * 0.22, 65)
-  if (absO === 1) return offset > 0 ? p : -p
-  if (!s.ow) return offset > 0 ? p : -p
-  p = p + s.aw / 2 + s.ow / 2 - Math.min(s.aw * 0.18, 45)
-  return offset > 0 ? p : -p
+function getCardWidth(): number {
+  const w = window.innerWidth
+  if (w < 480) return Math.min(w * 0.5, 180)
+  if (w < 768) return 220
+  if (w < 1024) return 260
+  return 300
 }
-
-const CUBIC = 'cubic-bezier(0.22, 1, 0.36, 1)'
 
 export default function MemoriesSection() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
@@ -35,9 +33,7 @@ export default function MemoriesSection() {
       <SectionWrapper className="bg-galaxy" id="memories" transitionType="lightBurst">
         <AnimatedText text="Photo Memories" className="text-3xl md:text-5xl font-heading text-rose-200 mb-3 text-center" />
         <p className="text-white/30 font-sans text-sm tracking-widest uppercase mb-8 text-center">A collection of special moments</p>
-        <div className="text-center py-20">
-          <p className="text-white/20 font-sans text-sm">Add photos to the img folder to create a gallery</p>
-        </div>
+        <div className="text-center py-20"><p className="text-white/20 font-sans text-sm">Add photos to the img folder to create a gallery</p></div>
       </SectionWrapper>
     )
   }
@@ -45,7 +41,7 @@ export default function MemoriesSection() {
     <SectionWrapper className="bg-galaxy" id="memories" transitionType="lightBurst">
       <AnimatedText text="Photo Memories" className="text-3xl md:text-5xl font-heading text-rose-200 mb-3 text-center" />
       <p className="text-white/30 font-sans text-sm tracking-widest uppercase mb-8 text-center">A collection of special moments</p>
-      <StackCarousel images={images} onSelect={setSelectedImage} />
+      <RingCarousel images={images} onSelect={setSelectedImage} />
       <AnimatePresence>
         {selectedImage && (
           <motion.div
@@ -70,101 +66,95 @@ export default function MemoriesSection() {
   )
 }
 
-function StackCarousel({ images, onSelect }: { images: string[]; onSelect: (src: string) => void }) {
-  const [pos, setPos] = useState(0)
-  const [sizes, setSizes] = useState<Sizes>(getSizes)
-  const posRef = useRef(0)
-  const targetRef = useRef<number | null>(null)
-  const velRef = useRef(0)
-  const dragStartRef = useRef(0)
-  const dragPosRef = useRef(0)
-  const isDraggingRef = useRef(false)
-  const hoveredRef = useRef(false)
-  const lastTimeRef = useRef(0)
-  const rafRef = useRef(0)
+type Card = { i: number; src: string; zF: number; cn: number; off: number }
+
+function RingCarousel({ images, onSelect }: { images: string[]; onSelect: (src: string) => void }) {
+  const ringRef = useRef<HTMLDivElement>(null!)
+  const [activeIdx, setActiveIdx] = useState(0)
+  const [radius, setRadius] = useState(getRadius)
+  const [cardW, setCardW] = useState(getCardWidth)
+  const [isHovered, setIsHovered] = useState(false)
+  const isDragging = useRef(false)
+  const dragStartX = useRef(0)
+  const dragBaseAngle = useRef(0)
+  const autoTimer = useRef<number | undefined>(undefined)
+  const snapTimer = useRef<number | undefined>(undefined)
 
   const n = images.length
-
-  const dimensions = useMemo(() => {
-    const s = sizes
-    return { w: s.cw, h: s.cw * 1.25, zI: 10 }
-  }, [sizes])
+  const step = 360 / n
+  const cardH = cardW * 1.25
 
   useEffect(() => {
-    const onResize = () => setSizes(getSizes())
+    const onResize = () => { setRadius(getRadius()); setCardW(getCardWidth()) }
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  useEffect(() => {
-    const tick = (time: number) => {
-      const dt = lastTimeRef.current === 0 ? 1 : Math.min((time - lastTimeRef.current) / 16.67, 3)
-      lastTimeRef.current = time
-      let cur = posRef.current
-
-      if (!isDraggingRef.current) {
-        if (targetRef.current !== null) {
-          let diff = targetRef.current - cur
-          cur += diff * Math.min(0.07 * dt, 1)
-          if (Math.abs(diff) < 0.005) {
-            cur = targetRef.current
-            targetRef.current = null
-            velRef.current = 0
-          }
-        } else {
-          if (Math.abs(velRef.current) > 0.0005) {
-            cur += velRef.current * dt
-            velRef.current *= Math.pow(0.88, dt)
-          } else {
-            velRef.current = 0
-            if (!hoveredRef.current) cur += 0.005 * dt
-          }
-        }
-      }
-
-      posRef.current = cur
-      setPos(cur)
-      rafRef.current = requestAnimationFrame(tick)
+  const rotateTo = useCallback((idx: number, instant = false) => {
+    const target = -idx * step
+    const el = ringRef.current
+    if (!el) return
+    if (instant) {
+      el.style.transition = 'none'
+      el.style.transform = `rotateY(${target}deg)`
+      el.style.transition = ''
+    } else {
+      el.style.transition = `transform 0.8s ${EASE}`
+      el.style.transform = `rotateY(${target}deg)`
     }
-    lastTimeRef.current = 0
-    rafRef.current = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(rafRef.current)
-  }, [])
+  }, [step])
 
-  const aIdx = ((Math.round(pos) % n) + n) % n
+  const goTo = useCallback((idx: number) => {
+    const target = ((idx % n) + n) % n
+    setActiveIdx(target)
+    rotateTo(target)
+  }, [n, rotateTo])
 
-  const advance = useCallback((dir: number) => {
-    targetRef.current = posRef.current + dir
-  }, [])
-
-  const goToSlide = useCallback((idx: number) => {
-    let diff = idx - posRef.current
-    if (diff > n / 2) diff -= n
-    if (diff < -n / 2) diff += n
-    targetRef.current = posRef.current + diff
-  }, [n])
+  useEffect(() => {
+    if (!isHovered && !isDragging.current) {
+      autoTimer.current = setTimeout(() => goTo(activeIdx + 1), 3500)
+    }
+    return () => clearTimeout(autoTimer.current)
+  }, [activeIdx, isHovered, goTo])
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
-    dragStartRef.current = e.clientX
-    dragPosRef.current = posRef.current
-    isDraggingRef.current = true
-    targetRef.current = null
-  }, [])
+    isDragging.current = true
+    clearTimeout(autoTimer.current)
+    clearTimeout(snapTimer.current)
+    dragStartX.current = e.clientX
+    const el = ringRef.current
+    if (el) {
+      const match = el.style.transform.match(/rotateY\(([-\d.]+)deg\)/)
+      dragBaseAngle.current = match ? parseFloat(match[1]) : -activeIdx * step
+      el.style.transition = 'none'
+    }
+  }, [activeIdx, step])
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
-    if (!isDraggingRef.current) return
-    const dx = e.clientX - dragStartRef.current
-    const sensitivity = sizes.maxV === 2 ? 0.004 : 0.006
-    posRef.current = dragPosRef.current + dx * sensitivity
-    setPos(posRef.current)
-  }, [sizes.maxV])
+    if (!isDragging.current) return
+    const dx = e.clientX - dragStartX.current
+    const angleDelta = dx * 0.15
+    const el = ringRef.current
+    if (el) {
+      el.style.transform = `rotateY(${dragBaseAngle.current + angleDelta}deg)`
+    }
+  }, [])
 
   const onPointerUp = useCallback(() => {
-    if (isDraggingRef.current) {
-      velRef.current = (posRef.current - dragPosRef.current) * 0.04
-    }
-    isDraggingRef.current = false
-  }, [])
+    if (!isDragging.current) return
+    isDragging.current = false
+    const el = ringRef.current
+    if (!el) return
+    const match = el.style.transform.match(/rotateY\(([-\d.]+)deg\)/)
+    const currentAngle = match ? parseFloat(match[1]) : -activeIdx * step
+    const nearestIdx = Math.round(-currentAngle / step)
+    const clamped = ((nearestIdx % n) + n) % n
+    setActiveIdx(clamped)
+    el.style.transition = `transform 0.6s ${EASE}`
+    el.style.transform = `rotateY(${-clamped * step}deg)`
+  }, [activeIdx, step, n])
+
+  const advance = useCallback((dir: number) => goTo(activeIdx + dir), [goTo, activeIdx])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -177,159 +167,146 @@ function StackCarousel({ images, onSelect }: { images: string[]; onSelect: (src:
 
   const onWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault()
-    targetRef.current = posRef.current + (e.deltaY > 0 ? 1 : -1)
-  }, [])
+    advance(e.deltaY > 0 ? 1 : -1)
+  }, [advance])
 
-  const slides: { offset: number; src: string; i: number }[] = []
-  for (let i = 0; i < n; i++) {
-    let offset = i - pos
-    if (offset > n / 2) offset -= n
-    if (offset < -n / 2) offset += n
-    if (Math.abs(offset) <= sizes.maxV + 1) {
-      slides.push({ offset, src: images[i], i })
+  const cards: Card[] = useMemo(() => {
+    const list: Card[] = []
+    for (let i = 0; i < n; i++) {
+      let off = i - activeIdx
+      if (off > n / 2) off -= n
+      if (off < -n / 2) off += n
+      const zF = Math.cos(off * step * RAD)
+      const cn = Math.max(0, (zF + 1) / 2)
+      list.push({ i, src: images[i], zF, cn, off })
     }
-  }
-  slides.sort((a, b) => Math.abs(a.offset) - Math.abs(b.offset))
-
-  const h = dimensions.h
+    return list.sort((a, b) => a.zF - b.zF)
+  }, [activeIdx, images, n, step])
 
   return (
     <div
       className="relative w-full select-none touch-none overflow-hidden"
-      style={{ height: `min(${h + 80}px, 75dvh)` }}
+      style={{ height: `min(${cardH + 100}px, 70dvh)`, perspective: '1400px' }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerLeave={onPointerUp}
       onWheel={onWheel}
-      onMouseEnter={() => { hoveredRef.current = true }}
-      onMouseLeave={() => { hoveredRef.current = false }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       <button
         onClick={() => advance(1)}
-        className="absolute left-2 md:left-5 top-1/2 z-20 w-9 h-9 md:w-11 md:h-11 rounded-full bg-white/[0.04] backdrop-blur border border-white/10 flex items-center justify-center text-white/30 hover:text-white hover:bg-white/15 transition-all duration-300 text-lg md:text-xl"
-        style={{ marginTop: `-${h * 0.05}px` }}
+        className="absolute left-2 md:left-5 top-1/2 z-30 w-9 h-9 md:w-11 md:h-11 rounded-full bg-white/[0.04] backdrop-blur border border-white/10 flex items-center justify-center text-white/30 hover:text-white hover:bg-white/15 transition-all duration-300 text-lg md:text-xl"
+        style={{ marginTop: -cardH * 0.08 }}
       >
         ‹
       </button>
       <button
         onClick={() => advance(-1)}
-        className="absolute right-2 md:right-5 top-1/2 z-20 w-9 h-9 md:w-11 md:h-11 rounded-full bg-white/[0.04] backdrop-blur border border-white/10 flex items-center justify-center text-white/30 hover:text-white hover:bg-white/15 transition-all duration-300 text-lg md:text-xl"
-        style={{ marginTop: `-${h * 0.05}px` }}
+        className="absolute right-2 md:right-5 top-1/2 z-30 w-9 h-9 md:w-11 md:h-11 rounded-full bg-white/[0.04] backdrop-blur border border-white/10 flex items-center justify-center text-white/30 hover:text-white hover:bg-white/15 transition-all duration-300 text-lg md:text-xl"
+        style={{ marginTop: -cardH * 0.08 }}
       >
         ›
       </button>
 
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="relative flex items-center justify-center" style={{ width: 0, height: 0 }}>
-          <div
-            className="absolute pointer-events-none"
-            style={{
-              width: sizes.cw * 1.5,
-              height: h * 0.7,
-              borderRadius: '50%',
-              background: `radial-gradient(ellipse, rgba(244,63,94,0.07) 0%, transparent 70%)`,
-              transform: 'translateY(-10%)',
-            }}
-          />
+      <div className="absolute inset-0 flex items-center justify-center" style={{ transformStyle: 'preserve-3d' }}>
+        <div
+          className="absolute pointer-events-none"
+          style={{
+            width: cardW * 1.4,
+            height: cardH * 0.6,
+            borderRadius: '50%',
+            background: 'radial-gradient(ellipse, rgba(244,63,94,0.08) 0%, transparent 70%)',
+            transform: 'translateZ(-60px)',
+          }}
+        />
 
-          {slides.map(s => {
-            const o = s.offset
-            const absO = Math.abs(o)
-            const isCenter = absO < 0.5
-            const isAdj = absO >= 0.5 && absO < 1.5
-            const isOuter = absO >= 1.5
-
-            const cardW = isCenter ? sizes.cw : isAdj && sizes.aw ? sizes.aw : sizes.ow || sizes.aw * 0.6
-            const cardH = cardW * 1.25
-
-            const closeness = Math.max(0, 1 - absO / (sizes.maxV + 1))
-            const sc = 0.55 + 0.45 * closeness
-            const op = Math.max(0.05, 0.08 + 0.92 * closeness)
-            const bl = (1 - closeness) * 2.2
-            const br = 0.25 + 0.75 * closeness
-            const x = getPos(Math.round(o), sizes)
-            const zI = 100 - absO * 10
-
-            const isActive = Math.round(o) === 0 && absO < 0.5
+        <div
+          ref={ringRef}
+          style={{
+            transformStyle: 'preserve-3d',
+            transform: `rotateY(${-activeIdx * step}deg)`,
+            transition: 'none',
+          }}
+        >
+          {cards.map(c => {
+            const ang = c.off * step
+            const isActive = c.off === 0
+            const sc = 0.55 + 0.45 * c.cn
+            const op = Math.max(0.04, 0.06 + 0.94 * c.cn)
+            const bl = (1 - c.cn) * 2.5
+            const br = 0.25 + 0.75 * c.cn
 
             return (
               <div
-                key={s.i}
+                key={c.i}
                 onClick={() => {
-                  if (absO > 0.5) goToSlide(s.i)
-                  else onSelect(s.src)
+                  if (c.off !== 0) goTo(c.i)
+                  else onSelect(c.src)
                 }}
-                className={`absolute cursor-pointer ${isActive ? 'active-card' : ''}`}
+                className="absolute cursor-pointer"
                 style={{
                   width: cardW,
                   height: cardH,
-                  transform: `translateX(${x}px) scale(${sc})`,
-                  opacity: op,
-                  zIndex: zI,
-                  transition: `transform 0.7s ${CUBIC}, opacity 0.5s ease, filter 0.5s ease`,
-                  filter: `brightness(${br}) blur(${Math.round(bl * 10) / 10}px)`,
+                  transform: `rotateY(${ang}deg) translateZ(${radius}px) rotateY(180deg)`,
+                  transformStyle: 'preserve-3d',
+                  transition: 'none',
                 }}
               >
                 <div
-                  className="relative w-full h-full overflow-hidden"
                   style={{
-                    borderRadius: '22px',
-                    border: `1px solid rgba(255,255,255,${isActive ? 0.18 : 0.04})`,
+                    width: '100%',
+                    height: '100%',
+                    borderRadius: '20px',
+                    overflow: 'hidden',
+                    border: `1px solid rgba(255,255,255,${isActive ? 0.18 : 0.035})`,
+                    background: 'rgba(0,0,0,0.35)',
                     boxShadow: isActive
-                      ? '0 0 50px rgba(244,63,94,0.18), 0 25px 80px rgba(0,0,0,0.55)'
-                      : `0 8px 32px rgba(0,0,0,${0.12 + 0.3 * closeness})`,
+                      ? '0 0 50px rgba(244,63,94,0.15), 0 20px 60px rgba(0,0,0,0.5)'
+                      : `0 8px 28px rgba(0,0,0,${0.15 + 0.3 * c.cn})`,
+                    opacity: op,
+                    filter: `brightness(${br}) blur(${Math.round(bl * 10) / 10}px)`,
+                    transform: `scale(${sc})`,
+                    transition: `opacity 0.8s ${EASE}, filter 0.8s ${EASE}, transform 0.8s ${EASE}, box-shadow 0.6s ease`,
                   }}
                 >
                   {isActive && (
                     <div
                       className="absolute inset-0 pointer-events-none"
                       style={{
-                        background: 'linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 50%)',
+                        background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%)',
                         zIndex: 2,
                       }}
                     />
                   )}
                   <div
                     className="w-full h-full"
-                    style={
-                      isActive
-                        ? { animation: 'carousel-float 3.8s ease-in-out infinite' }
-                        : undefined
-                    }
+                    style={isActive ? { animation: 'mem-float 3.8s ease-in-out infinite' } : undefined}
                   >
                     <img
-                      src={s.src}
-                      alt={`Memory ${s.i + 1}`}
+                      src={c.src}
+                      alt={`Memory ${c.i + 1}`}
                       className="w-full h-full"
                       style={{ objectFit: 'cover', aspectRatio: '4 / 5' }}
                       draggable={false}
                     />
                   </div>
-
                   {isActive && (
                     <>
-                      <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.6) 100%)', zIndex: 2 }} />
+                      <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.55) 100%)', zIndex: 2 }} />
                       <div
-                        className="absolute bottom-4 left-1/2 -translate-x-1/2 pointer-events-none z-10"
+                        className="absolute bottom-3 left-1/2 -translate-x-1/2 pointer-events-none z-10"
                         style={{
                           fontFamily: 'var(--font-sans)',
-                          fontSize: 'clamp(10px, 1.2vw, 13px)',
-                          color: 'rgba(255,255,255,0.5)',
+                          fontSize: 'clamp(10px, 1.2vw, 12px)',
+                          color: 'rgba(255,255,255,0.45)',
                           letterSpacing: '0.15em',
                           textTransform: 'uppercase',
                         }}
                       >
-                        {s.i + 1} / {n}
+                        {c.i + 1} / {n}
                       </div>
-
-                      <div
-                        className="shine absolute inset-0 pointer-events-none z-10"
-                        style={{
-                          background: 'linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%)',
-                          transform: 'translateX(-120%) skewX(-15deg)',
-                        }}
-                      />
                     </>
                   )}
                 </div>
@@ -339,48 +316,40 @@ function StackCarousel({ images, onSelect }: { images: string[]; onSelect: (src:
         </div>
       </div>
 
-      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
         {images.map((_, i) => (
           <button
             key={i}
-            onClick={() => goToSlide(i)}
+            onClick={() => goTo(i)}
             className="rounded-full transition-all duration-500"
             style={{
-              width: i === aIdx ? 18 : 4,
+              width: i === activeIdx ? 18 : 4,
               height: 4,
-              background: i === aIdx ? 'rgba(244,63,94,0.7)' : 'rgba(255,255,255,0.12)',
+              background: i === activeIdx ? 'rgba(244,63,94,0.7)' : 'rgba(255,255,255,0.1)',
             }}
           />
         ))}
       </div>
 
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {[...Array(12)].map((_, i) => (
+        {[...Array(10)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute rounded-full bg-white/20"
-            style={{ left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`, width: i % 3 === 0 ? 3 : 1.5, height: i % 3 === 0 ? 3 : 1.5 }}
-            animate={{
-              opacity: [0, 0.5, 0],
-              y: [0, -15 - Math.random() * 25],
-              x: [0, (Math.random() - 0.5) * 12],
+            style={{
+              left: `${10 + Math.random() * 80}%`,
+              top: `${10 + Math.random() * 80}%`,
+              width: i % 2 === 0 ? 2.5 : 1.5,
+              height: i % 2 === 0 ? 2.5 : 1.5,
             }}
-            transition={{
-              duration: 2.5 + Math.random() * 3,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-              ease: 'easeInOut',
-            }}
+            animate={{ opacity: [0, 0.4, 0], y: [0, -12 - Math.random() * 20], x: [0, (Math.random() - 0.5) * 10] }}
+            transition={{ duration: 2.5 + Math.random() * 3, repeat: Infinity, delay: Math.random() * 2, ease: 'easeInOut' }}
           />
         ))}
       </div>
 
       <style>{`
-        @keyframes carousel-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
-        .active-card { transition: transform 0.5s ease, box-shadow 0.5s ease !important; }
-        .active-card:hover { transform: scale(1.03) translateY(-4px) !important; box-shadow: 0 0 70px rgba(244,63,94,0.3), 0 30px 90px rgba(0,0,0,0.6) !important; }
-        @keyframes shine-sweep { 0%{transform:translateX(-120%) skewX(-15deg)} 100%{transform:translateX(250%) skewX(-15deg)} }
-        .active-card:hover .shine { animation: shine-sweep 0.7s ease-in-out forwards; }
+        @keyframes mem-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
       `}</style>
     </div>
   )
