@@ -209,7 +209,7 @@ export default function FinalMessage() {
           <div key={b.id} className="absolute rounded-full" style={{
             left: `${b.x}%`, top: `${b.y}%`, width: b.s, height: b.s,
             background: `radial-gradient(circle, rgba(252,211,77,${0.015 + Math.random() * 0.025}), transparent)`,
-            filter: 'blur(25px)',
+            filter: 'blur(6px)',
             animation: `bokeh-drift ${b.d}s ease-in-out infinite`,
             willChange: 'transform',
           }} />
@@ -290,8 +290,8 @@ export default function FinalMessage() {
         >
           <div className="absolute inset-0 rounded-[30px] pointer-events-none" style={{
             background: 'linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01))',
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
+            backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)',
             boxShadow: '0 0 80px rgba(252,211,77,0.06), 0 0 160px rgba(252,211,77,0.03)',
             transform: 'translateZ(0)',
           }} />
@@ -487,11 +487,11 @@ export default function FinalMessage() {
 
           <div className="absolute inset-0 rounded-[30px] pointer-events-none overflow-hidden" style={{ transform: 'translateZ(-1px)' }}>
             <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full"
-              style={{ background: 'radial-gradient(circle, rgba(252,211,77,0.03), transparent)', filter: 'blur(20px)',
+              style={{ background: 'radial-gradient(circle, rgba(252,211,77,0.03), transparent)', filter: 'blur(6px)',
                 animation: 'glow-drift-1 12s ease-in-out infinite' }}
             />
             <div className="absolute -bottom-10 -right-10 w-48 h-48 rounded-full"
-              style={{ background: 'radial-gradient(circle, rgba(244,63,94,0.02), transparent)', filter: 'blur(30px)',
+              style={{ background: 'radial-gradient(circle, rgba(244,63,94,0.02), transparent)', filter: 'blur(8px)',
                 animation: 'glow-drift-2 10s ease-in-out infinite' }}
             />
           </div>

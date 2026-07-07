@@ -190,7 +190,7 @@ export default function WishSection() {
               left: `${n.x}%`, top: `${n.y}%`,
               width: n.s, height: n.s,
               background: `radial-gradient(circle, ${n.c}20, ${n.c}08, transparent)`,
-              filter: 'blur(40px)',
+              filter: 'blur(15px)',
               transform: 'translate(-50%, -50%)',
             }}
             animate={{
@@ -228,7 +228,7 @@ export default function WishSection() {
               className="absolute inset-0 rounded-full"
               style={{
                 background: 'radial-gradient(circle, rgba(255,220,150,0.25) 0%, transparent 70%)',
-                filter: 'blur(20px)',
+                filter: 'blur(5px)',
                 transform: 'scale(2.2)',
               }}
             />
@@ -444,14 +444,14 @@ export default function WishSection() {
               className="relative w-full max-w-md rounded-3xl overflow-hidden border border-white/15"
               style={{
                 background: 'linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))',
-                backdropFilter: 'blur(24px)',
+                backdropFilter: 'blur(4px)',
               }}
             >
               <div
                 className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full pointer-events-none"
                 style={{
                   background: `radial-gradient(circle, ${activeWish.color}25, transparent 70%)`,
-                  filter: 'blur(40px)',
+                  filter: 'blur(10px)',
                 }}
               />
 

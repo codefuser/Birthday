@@ -237,7 +237,7 @@ function GiftPopup({ gift, onClose }: { gift: GiftData; onClose: () => void }) {
         transition={{ type: 'spring', stiffness: 120, damping: 18, mass: 0.8 }}
         onClick={(e) => e.stopPropagation()}
         className="relative w-full max-w-lg rounded-3xl overflow-hidden border border-white/15"
-        style={{ background: 'linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))', backdropFilter: 'blur(24px)' }}
+        style={{ background: 'linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))', backdropFilter: 'blur(4px)' }}
       >
         <button
           onClick={onClose}
@@ -246,7 +246,7 @@ function GiftPopup({ gift, onClose }: { gift: GiftData; onClose: () => void }) {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
         </button>
 
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full" style={{ background: `radial-gradient(circle, ${gift.color}30, transparent 70%)`, filter: 'blur(30px)' }} />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full" style={{ background: `radial-gradient(circle, ${gift.color}30, transparent 70%)`, filter: 'blur(8px)' }} />
 
         <div className="relative p-6 md:p-10 text-center">
           <motion.div

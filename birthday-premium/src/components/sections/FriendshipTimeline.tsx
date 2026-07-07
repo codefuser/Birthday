@@ -27,11 +27,11 @@ export default function FriendshipTimeline() {
     <SectionWrapper className="bg-aurora relative" id="timeline" transitionType="particleDissolve">
       <div className="absolute inset-0 overflow-hidden">
         <div
-          className="absolute -top-20 -left-20 w-96 h-96 rounded-full bg-emerald-500/5 blur-[100px]"
+          className="absolute -top-20 -left-20 w-96 h-96 rounded-full bg-emerald-500/5 blur-[25px]"
           style={{ animation: 'glow-drift-1 15s ease-in-out infinite' }}
         />
         <div
-          className="absolute -bottom-20 -right-20 w-80 h-80 rounded-full bg-rose-500/5 blur-[100px]"
+          className="absolute -bottom-20 -right-20 w-80 h-80 rounded-full bg-rose-500/5 blur-[25px]"
           style={{ animation: 'glow-drift-2 12s ease-in-out infinite' }}
         />
       </div>

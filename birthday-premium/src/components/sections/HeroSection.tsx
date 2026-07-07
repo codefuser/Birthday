@@ -28,9 +28,9 @@ function ShootingStars() {
 
   useFrame(() => {
     if (!heroVisible) return
-    invalidate()
     fc.current++
-    if (fc.current % 3 !== 0) return
+    if (fc.current % 3 !== 0) { invalidate(); return }
+    invalidate()
     const pos = ref.current.geometry.attributes.position.array as Float32Array
     const opacities = ref.current.geometry.attributes.opacity?.array as Float32Array | null
 
@@ -118,9 +118,9 @@ function Constellations() {
 
   useFrame((state) => {
     if (!heroVisible) return
-    invalidate()
     fc.current++
-    if (fc.current % 4 !== 0) return
+    if (fc.current % 4 !== 0) { invalidate(); return }
+    invalidate()
     if (ref.current) {
       ref.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.02) * 0.1
     }
@@ -162,9 +162,8 @@ function ParticleField() {
 
   useFrame((state) => {
     if (!heroVisible) return
-    invalidate()
     fc.current++
-    if (fc.current % 2 !== 0) return
+    if (fc.current % 2 !== 0) { invalidate(); return }
     const p = ref.current.geometry.attributes.position.array as Float32Array
     for (let i = 0; i < count; i++) {
       p[i * 3 + 1] += Math.sin(state.clock.elapsedTime * 0.1 + i) * 0.001
@@ -208,8 +207,8 @@ export default function HeroSection() {
     <section ref={containerRef} className="relative min-h-[100dvh] w-full flex items-center justify-center overflow-hidden bg-night-900">
       <div className="absolute inset-0 bg-gradient-to-b from-night-900 via-rose-950/20 to-night-900/80" />
 
-      <div ref={glowRef} className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] max-w-[800px] aspect-square rounded-full bg-rose-500/10 blur-[150px]" />
-      <div className="absolute top-1/4 left-1/4 w-[50vw] max-w-[400px] aspect-square rounded-full bg-gold-500/5 blur-[100px]" />
+      <div ref={glowRef} className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] max-w-[800px] aspect-square rounded-full bg-rose-500/10 blur-[30px]" />
+      <div className="absolute top-1/4 left-1/4 w-[50vw] max-w-[400px] aspect-square rounded-full bg-gold-500/5 blur-[25px]" />
 
       <div className="absolute inset-0">
         <Suspense fallback={null}>
@@ -258,7 +257,7 @@ export default function HeroSection() {
           <div className="relative rounded-3xl border border-white/[0.06] p-5 md:p-8 text-center"
             style={{
               background: 'linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))',
-              backdropFilter: 'blur(16px)',
+              backdropFilter: 'blur(8px)',
             }}
           >
             <div className="absolute -inset-px rounded-3xl pointer-events-none" style={{
