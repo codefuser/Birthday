@@ -49,7 +49,7 @@ function KamCarousel({ images, onSelect }: { images: string[]; onSelect: (src: s
                   src={src}
                   alt={`Memory ${i + 1}`}
                   className="w-full h-full"
-                  style={{ objectFit: 'cover' }}
+                  style={{ objectFit: 'cover', filter: 'brightness(1.25)' }}
                   draggable={false}
                 />
               </div>
@@ -82,7 +82,7 @@ export default function MemoriesSection() {
       <AnimatedText text="Photo Memories" className="text-3xl md:text-5xl font-heading text-rose-200 mb-3 text-center" />
       <p className="text-white/30 font-sans text-sm tracking-widest uppercase mb-10 text-center">A collection of special moments</p>
 
-      <KamCarousel images={images} onSelect={setSelectedImage} />
+      <div className="-mt-24"><KamCarousel images={images} onSelect={setSelectedImage} /></div>
 
       <AnimatePresence>
         {selectedImage && (
