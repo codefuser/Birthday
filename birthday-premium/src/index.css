@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 @theme {
-  --font-display: "Playfair Display", "Cormorant Garamond", serif;
-  --font-heading: "Cormorant Garamond", "Playfair Display", serif;
-  --font-script: "Great Vibes", cursive;
-  --font-sans: "Inter", sans-serif;
-  --font-mono: "Manrope", sans-serif;
+  --font-display: "Poppins", sans-serif;
+  --font-heading: "Poppins", sans-serif;
+  --font-script: "Poppins", sans-serif;
+  --font-sans: "Poppins", sans-serif;
+  --font-mono: "Poppins", sans-serif;
   --color-rose-50: #fff1f2;
   --color-rose-100: #ffe4e6;
   --color-rose-200: #fecdd3;

@@ -36,7 +36,7 @@ function loadImages(): string[] {
 
 export const birthdayConfig: BirthdayConfig = {
   friendName: 'Birthday Star',
-  birthdayDate: 'July 7, 2006',
+  birthdayDate: 'July 7, 2026',
   birthDate: new Date(2006, 6, 7),
   greetingMessages: {
     main: 'Happy Birthday!',
