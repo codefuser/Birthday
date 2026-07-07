@@ -13,7 +13,7 @@ function KamCarousel({ images, onSelect }: { images: string[]; onSelect: (src: s
 
   return (
     <div
-      className="relative w-full select-none"
+      className="relative w-full select-none overflow-hidden"
       style={{
         height: `min(40rem, 65dvh)`,
         perspective: '50em',
@@ -42,7 +42,7 @@ function KamCarousel({ images, onSelect }: { images: string[]; onSelect: (src: s
               }}
             >
               <div
-                className="w-full h-full overflow-hidden"
+                className="w-full h-full overflow-hidden bg-black/40"
                 style={{ borderRadius: '1.5em' }}
               >
                 <img
@@ -76,7 +76,9 @@ export default function MemoriesSection() {
   }
 
   return (
-    <SectionWrapper className="bg-galaxy pt-12 pb-16 md:pt-20 md:pb-28" id="memories" transitionType="lightBurst">
+    <SectionWrapper className="bg-galaxy pt-12 pb-16 md:pt-20 md:pb-28 overflow-x-hidden" id="memories" transitionType="lightBurst">
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0b0a1a] pointer-events-none z-20" />
+
       <AnimatedText text="Photo Memories" className="text-3xl md:text-5xl font-heading text-rose-200 mb-3 text-center" />
       <p className="text-white/30 font-sans text-sm tracking-widest uppercase mb-10 text-center">A collection of special moments</p>
 
