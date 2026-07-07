@@ -1,14 +1,13 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import SectionWrapper from '../ui/SectionWrapper'
 import AnimatedText from '../ui/AnimatedText'
 import { birthdayConfig } from '../../config/birthday'
 
 function KamCarousel({ images, onSelect }: { images: string[]; onSelect: (src: string) => void }) {
-  const [paused, setPaused] = useState(false)
   const n = images.length
 
-  const cardW = 320
+  const cardW = 400
   const ba = 360 / n
   const zDist = -(cardW * 0.5 + 8) / Math.tan((ba * 0.5) * Math.PI / 180)
 
@@ -16,20 +15,18 @@ function KamCarousel({ images, onSelect }: { images: string[]; onSelect: (src: s
     <div
       className="relative w-full select-none"
       style={{
-        height: `min(35rem, 65dvh)`,
-        perspective: '35em',
+        height: `min(40rem, 65dvh)`,
+        perspective: '50em',
         mask: 'linear-gradient(90deg, transparent, black 20% 80%, transparent)',
         WebkitMask: 'linear-gradient(90deg, transparent, black 20% 80%, transparent)',
       }}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
     >
       <div className="flex items-center justify-center w-full h-full" style={{ transformStyle: 'preserve-3d' }}>
         <div
           className="ring"
           style={{
             transformStyle: 'preserve-3d',
-            animation: paused ? 'none' : 'ry 32s linear infinite',
+            animation: 'ry 32s linear infinite',
           }}
         >
           {images.map((src, i) => (
@@ -39,7 +36,7 @@ function KamCarousel({ images, onSelect }: { images: string[]; onSelect: (src: s
               className="absolute cursor-pointer"
               style={{
                 width: cardW,
-                height: cardW * 10 / 7,
+                height: cardW * 5 / 4,
                 transform: `rotateY(${i * ba}deg) translateZ(${zDist}px)`,
                 backfaceVisibility: 'hidden',
               }}
