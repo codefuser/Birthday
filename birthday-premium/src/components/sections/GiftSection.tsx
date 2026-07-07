@@ -24,7 +24,8 @@ const gifts: GiftData[] = [
 
 function playChime() {
   try {
-    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
+    const ctx = soundManager.getContext()
+    if (!ctx) return
     const notes = [523.25, 659.25, 783.99, 1046.5]
     notes.forEach((freq, i) => {
       const osc = ctx.createOscillator()

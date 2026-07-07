@@ -67,7 +67,8 @@ function useMousePos() {
 
 function playShimmer() {
   try {
-    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
+    const ctx = soundManager.getContext()
+    if (!ctx) return
     const osc = ctx.createOscillator()
     const gain = ctx.createGain()
     osc.connect(gain)
@@ -83,7 +84,8 @@ function playShimmer() {
 
 function playStarChime() {
   try {
-    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
+    const ctx = soundManager.getContext()
+    if (!ctx) return
     const notes = [880, 1108.73, 1318.51, 1760]
     notes.forEach((freq, i) => {
       const osc = ctx.createOscillator()

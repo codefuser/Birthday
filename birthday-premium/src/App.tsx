@@ -1,19 +1,19 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState, useCallback } from 'react'
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import Lenis from 'lenis'
-import HeroSection from './components/sections/HeroSection'
-import CakeSection from './components/sections/CakeSection'
-import MemoriesSection from './components/sections/MemoriesSection'
-import FriendshipTimeline from './components/sections/FriendshipTimeline'
-import GiftSection from './components/sections/GiftSection'
-import FinalMessage from './components/sections/FinalMessage'
-import CountdownSection from './components/sections/CountdownSection'
-import SectionWrapper from './components/ui/SectionWrapper'
 import ErrorBoundary from './components/ui/ErrorBoundary'
 import { birthdayConfig } from './config/birthday'
 import { useReducedMotion } from './hooks/useReducedMotion'
 import { soundManager } from './lib/sound'
 import { StarIcon, HeartIcon } from './components/ui/PremiumIcons'
+
+const HeroSection = lazy(() => import('./components/sections/HeroSection'))
+const CakeSection = lazy(() => import('./components/sections/CakeSection'))
+const MemoriesSection = lazy(() => import('./components/sections/MemoriesSection'))
+const FriendshipTimeline = lazy(() => import('./components/sections/FriendshipTimeline'))
+const GiftSection = lazy(() => import('./components/sections/GiftSection'))
+const FinalMessage = lazy(() => import('./components/sections/FinalMessage'))
+const CountdownSection = lazy(() => import('./components/sections/CountdownSection'))
 
 function MuteButton({ isMuted, onToggle }: { isMuted: boolean; onToggle: () => void }) {
   return (
@@ -147,7 +147,7 @@ export default function App() {
             transition={{ duration: 0.6 }}
             className="fixed inset-0 z-50"
           >
-            <CountdownSection onComplete={handleCountdownComplete} />
+            <Suspense fallback={null}><CountdownSection onComplete={handleCountdownComplete} /></Suspense>
           </motion.div>
         )}
       </AnimatePresence>
@@ -163,12 +163,12 @@ export default function App() {
         <MuteButton isMuted={isMuted} onToggle={toggleMute} />
         <ScrollIndicator />
 
-        <ErrorBoundary><HeroSection /></ErrorBoundary>
-        <ErrorBoundary><CakeSection /></ErrorBoundary>
-        <ErrorBoundary><MemoriesSection /></ErrorBoundary>
-        <ErrorBoundary><FriendshipTimeline /></ErrorBoundary>
-        <ErrorBoundary><GiftSection /></ErrorBoundary>
-        <ErrorBoundary><FinalMessage /></ErrorBoundary>
+        <ErrorBoundary><Suspense fallback={null}><HeroSection /></Suspense></ErrorBoundary>
+        <ErrorBoundary><Suspense fallback={null}><CakeSection /></Suspense></ErrorBoundary>
+        <ErrorBoundary><Suspense fallback={null}><MemoriesSection /></Suspense></ErrorBoundary>
+        <ErrorBoundary><Suspense fallback={null}><FriendshipTimeline /></Suspense></ErrorBoundary>
+        <ErrorBoundary><Suspense fallback={null}><GiftSection /></Suspense></ErrorBoundary>
+        <ErrorBoundary><Suspense fallback={null}><FinalMessage /></Suspense></ErrorBoundary>
 
         <footer className="relative z-10 py-8 text-center bg-night-900 border-t border-white/5">
           <p className="text-white/20 text-xs font-sans flex items-center justify-center gap-2">

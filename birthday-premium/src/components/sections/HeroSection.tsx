@@ -187,7 +187,7 @@ export default function HeroSection() {
 
       <div className="absolute inset-0">
         <Suspense fallback={null}>
-          <Canvas camera={{ position: [0, 0, 8], fov: 65 }}>
+          <Canvas dpr={[1, 1.5]} camera={{ position: [0, 0, 8], fov: 65 }}>
             <ambientLight intensity={0.1} />
             <ParticleField />
             <Constellations />

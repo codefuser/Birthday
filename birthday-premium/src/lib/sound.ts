@@ -16,7 +16,7 @@ class SoundManager {
     return this._muted
   }
 
-  private getContext(): AudioContext {
+  getContext(): AudioContext {
     if (!this.ctx) {
       const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
       this.ctx = new AC()

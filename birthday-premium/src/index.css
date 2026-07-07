@@ -56,6 +56,7 @@ img { max-width: 100%; height: auto; }
   -moz-osx-font-smoothing: grayscale;
 }
 
+section { content-visibility: auto; contain-intrinsic-size: 100dvh; }
 @keyframes float { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
 @keyframes pulse-glow { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
 @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }

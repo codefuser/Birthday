@@ -2,10 +2,12 @@ import { useRef, useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import SectionWrapper from '../ui/SectionWrapper'
 import { useLiveAge } from '../../hooks/useLiveAge'
+import { soundManager } from '../../lib/sound'
 
 function playPianoAmbience() {
   try {
-    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
+    const ctx = soundManager.getContext()
+    if (!ctx) return
     const masterGain = ctx.createGain()
     masterGain.gain.setValueAtTime(0, ctx.currentTime)
     masterGain.gain.linearRampToValueAtTime(0.04, ctx.currentTime + 2)

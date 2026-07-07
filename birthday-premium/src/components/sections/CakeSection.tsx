@@ -14,9 +14,8 @@ let micStream: MediaStream | null = null
 let blowCheckId: number | null = null
 
 function playHappyBirthday() {
-  const AC = window.AudioContext || (window as unknown as Record<string, typeof AudioContext>).webkitAudioContext
-  if (!AC) return
-  const ctx = new AC()
+  const ctx = soundManager.getContext()
+  if (!ctx) return
   const note = (freq: number, start: number, dur: number) => {
     const o = ctx.createOscillator(); const g = ctx.createGain()
     o.type = 'sine'; o.frequency.value = freq
@@ -274,8 +273,8 @@ export default function CakeSection() {
         <Suspense fallback={<div className="w-full h-full flex flex-col items-center justify-center gap-3">
           <div className="w-8 h-8 border border-rose-300/30 border-t-rose-300 rounded-full animate-spin" />
           <span className="text-white/20 text-xs font-sans tracking-widest uppercase">Baking your cake...</span></div>}>
-          <Canvas shadows camera={{position:[0,-.05,3.4],fov:34}}
-            gl={{antialias:true,alpha:true,preserveDrawingBuffer:true,toneMapping:THREE.ACESFilmicToneMapping,toneMappingExposure:1.4}}
+          <Canvas shadows dpr={[1, 1.5]} camera={{position:[0,-.05,3.4],fov:34}}
+            gl={{antialias:true,alpha:true,toneMapping:THREE.ACESFilmicToneMapping,toneMappingExposure:1.4}}
             onCreated={({gl})=>{gl.setClearColor(0x000000,0)}}>
             <ambientLight intensity={.4} />
             <hemisphereLight args={['#fce7f3','#1a1a2e',.6]} />

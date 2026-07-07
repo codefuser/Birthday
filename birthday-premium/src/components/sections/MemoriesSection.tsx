@@ -34,6 +34,7 @@ function Card({ src, onSelect }: { src: string; onSelect: () => void }) {
         className="w-full h-full"
         style={{ objectFit: 'cover', animation: 'card-zoom 14s ease-in-out infinite alternate' }}
         draggable={false}
+        loading="lazy"
       />
       <div
         className="absolute inset-0 z-20 pointer-events-none"
@@ -70,6 +71,7 @@ function HorizontalMarquee({ images, onSelect }: { images: string[]; onSelect: (
         style={{
           width: 'max-content',
           animation: `scroll-${setWidth} 30s linear infinite`,
+          willChange: 'transform',
         }}
       >
         {items.map((src, i) => (
