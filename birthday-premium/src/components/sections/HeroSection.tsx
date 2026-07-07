@@ -243,6 +243,10 @@ export default function HeroSection() {
               padding: '1px',
             }} />
 
+            <p className="text-[clamp(9px,1.8vw,11px)] tracking-[0.25em] uppercase text-white/15 font-sans font-light mb-2">
+              {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </p>
+
             <p className="text-[clamp(8px,1.5vw,10px)] tracking-[0.35em] uppercase text-white/25 font-sans font-light mb-3">
               Celebrating Life Since
             </p>

@@ -7,7 +7,7 @@ export interface LiveAge {
   totalSeconds: number
 }
 
-export const BIRTH_DATE = new Date(2026, 6, 7)
+export const BIRTH_DATE = new Date(2006, 6, 7)
 
 export function calculateAge(now: Date): LiveAge {
   const diffMs = now.getTime() - BIRTH_DATE.getTime()
