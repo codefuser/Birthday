@@ -198,10 +198,12 @@ export default function FinalMessage() {
     >
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
 
-      <motion.div className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(252,211,77,0.08) 0%, rgba(252,211,77,0.02) 30%, transparent 55%)' }}
-        animate={visible ? { opacity: [0.4, 0.7, 0.4] } : {}}
-        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+      <div className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse at 50% 40%, rgba(252,211,77,0.08) 0%, rgba(252,211,77,0.02) 30%, transparent 55%)',
+          animation: 'bg-pulse 6s ease-in-out infinite',
+          willChange: 'opacity',
+        }}
       />
 
       <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ perspective: '500px' }}>
@@ -254,20 +256,18 @@ export default function FinalMessage() {
         ))}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {fireflies.map(f => (
-          <motion.div key={f.id} className="absolute pointer-events-none z-10" style={{ left: `${f.x}%`, top: `${f.y}%` }}
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: [0, 0.35, 0.1, 0.5, 0], scale: [0, 1.2, 0.8, 1.5, 0], y: [0, -15, 5, -20, 0] }}
-            transition={{ duration: 5, delay: f.delay, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            <div className="w-2 h-2 rounded-full" style={{
-              background: 'radial-gradient(circle, rgba(252,211,77,0.8), transparent)',
-              filter: 'blur(1px)',
-            }} />
-          </motion.div>
-        ))}
-      </AnimatePresence>
+      {fireflies.map(f => (
+        <div key={f.id} className="absolute pointer-events-none z-10" style={{
+          left: `${f.x}%`, top: `${f.y}%`,
+          animation: `firefly-glow 5s ease-in-out ${f.delay}s infinite`,
+          willChange: 'transform, opacity',
+        }}>
+          <div className="w-2 h-2 rounded-full" style={{
+            background: 'radial-gradient(circle, rgba(252,211,77,0.8), transparent)',
+            filter: 'blur(1px)',
+          }} />
+        </div>
+      ))}
 
       <motion.div
         initial={{ opacity: 0, scale: 0.97 }}
@@ -347,16 +347,17 @@ export default function FinalMessage() {
                 MS
               </h1>
 
-              <motion.div className="absolute -top-3 -right-3 w-12 h-12 md:w-14 md:h-14 pointer-events-none"
-                style={{ transform: 'translateZ(90px)' }}
-                initial={{ opacity: 0, scale: 0 }}
-                animate={visible ? { opacity: [0, 0.4, 0], scale: [0, 1.2, 0] } : {}}
-                transition={{ duration: 3, delay: 2, repeat: Infinity, ease: 'easeInOut' }}
+              <div className="absolute -top-3 -right-3 w-12 h-12 md:w-14 md:h-14 pointer-events-none"
+                style={{
+                  transform: 'translateZ(90px)',
+                  animation: 'star-pop 3s ease-in-out 2s infinite',
+                  willChange: 'transform, opacity',
+                }}
               >
                 <svg viewBox="0 0 24 24" className="w-full h-full" fill="none" stroke="#fcd34d" strokeWidth="1" opacity="0.4">
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                 </svg>
-              </motion.div>
+              </div>
             </motion.div>
 
             <div className="space-y-2" style={{ transform: 'translateZ(40px)' }}>
@@ -404,15 +405,13 @@ export default function FinalMessage() {
           </div>
 
           <div className="absolute inset-0 rounded-[30px] pointer-events-none overflow-hidden" style={{ transform: 'translateZ(3px)' }}>
-            <motion.div
+            <div
               className="absolute inset-y-0 w-1/2"
               style={{
                 background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.025) 50%, transparent)',
-                skewX: '-20deg',
+                animation: 'shine-sweep 4s ease-in-out 4s infinite',
+                willChange: 'transform',
               }}
-              initial={{ x: '-100%' }}
-              animate={visible ? { x: '400%' } : {}}
-              transition={{ duration: 4, delay: 4, repeat: Infinity, ease: [0.25, 0.1, 0.25, 1] }}
             />
             <motion.div
               className="absolute w-1/2 h-1/2 rounded-full"
@@ -426,7 +425,7 @@ export default function FinalMessage() {
           </div>
 
           {dustParticles.map(p => (
-            <motion.div
+            <div
               key={p.id}
               className="absolute pointer-events-none rounded-full"
               style={{
@@ -436,25 +435,14 @@ export default function FinalMessage() {
                 top: `${p.y}%`,
                 background: 'radial-gradient(circle, rgba(252,211,77,0.6), transparent)',
                 filter: 'blur(1px)',
-                transform: `translateZ(${60 + Math.random() * 40}px)`,
-              }}
-              initial={{ opacity: 0 }}
-              animate={visible ? {
-                opacity: [0, 0.5, 0.2, 0.4, 0],
-                x: [0, p.driftX * 0.3, p.driftX * 0.6, p.driftX, 0],
-                y: [0, p.driftY * 0.3, p.driftY * 0.6, p.driftY, 0],
-              } : {}}
-              transition={{
-                duration: p.d,
-                delay: p.delay,
-                repeat: Infinity,
-                ease: 'easeInOut',
+                animation: `dust-glow ${p.d}s ease-in-out ${p.delay}s infinite`,
+                willChange: 'transform, opacity',
               }}
             />
           ))}
 
           {[0, 1, 2, 3].map(i => (
-            <motion.div
+            <div
               key={`sparkle-${i}`}
               className="absolute pointer-events-none"
               style={{
@@ -464,25 +452,14 @@ export default function FinalMessage() {
                 bottom: i >= 2 ? -10 : undefined,
                 left: i % 2 === 0 ? -10 : undefined,
                 right: i % 2 === 1 ? -10 : undefined,
-                transform: `translateZ(${100}px)`,
-              }}
-              initial={{ opacity: 0, scale: 0, rotate: 0 }}
-              animate={visible ? {
-                opacity: [0, 0.6, 0, 0.4, 0],
-                scale: [0, 1, 0.5, 0.8, 0],
-                rotate: [0, 45, 90, 135, 180],
-              } : {}}
-              transition={{
-                duration: 4,
-                delay: i * 1.2 + 1,
-                repeat: Infinity,
-                ease: 'easeInOut',
+                animation: `corner-sparkle 4s ease-in-out ${i * 1.2 + 1}s infinite`,
+                willChange: 'transform, opacity',
               }}
             >
               <svg viewBox="0 0 24 24" className="w-full h-full" fill="#fcd34d" opacity="0.5">
                 <path d="M12 0l1.5 7.5L21 9l-7.5 3L15 21l-3-6-3 6 1.5-9L3 9l7.5-1.5z" />
               </svg>
-            </motion.div>
+            </div>
           ))}
 
           <div className="absolute inset-0 rounded-[30px] pointer-events-none overflow-hidden" style={{ transform: 'translateZ(-1px)' }}>

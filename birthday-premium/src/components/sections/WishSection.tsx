@@ -51,8 +51,10 @@ const edges: [number, number][] = [
 const STAR_PATH = 'M0-10L2.36-3.09 9.51-3.09 3.78 1.18 5.88 8.09 0 3.82-5.88 8.09-3.78 1.18-9.51-3.09-2.36-3.09Z'
 
 function useMousePos() {
+  const isTouch = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0)
   const [pos, setPos] = useState({ x: 0, y: 0 })
   useEffect(() => {
+    if (isTouch) return
     const handler = (e: MouseEvent) => {
       setPos({
         x: (e.clientX / window.innerWidth - 0.5) * 2,
@@ -61,7 +63,7 @@ function useMousePos() {
     }
     window.addEventListener('mousemove', handler, { passive: true })
     return () => window.removeEventListener('mousemove', handler)
-  }, [])
+  }, [isTouch])
   return pos
 }
 
@@ -212,6 +214,7 @@ export default function WishSection() {
               width: s.s, height: s.s,
               opacity: 0.3 + Math.random() * 0.4,
               animation: `twinkle ${s.t}s ease-in-out ${s.d}s infinite`,
+              willChange: 'transform, opacity',
             }}
           />
         ))}
