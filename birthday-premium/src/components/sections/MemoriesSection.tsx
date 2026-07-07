@@ -45,22 +45,7 @@ function Card({ src, onSelect }: { src: string; onSelect: () => void }) {
         onMouseEnter={e => { e.currentTarget.style.transform = 'translateX(180%) skewX(-20deg)' }}
         onMouseLeave={e => { e.currentTarget.style.transform = 'translateX(-150%) skewX(-20deg)' }}
       />
-      <div
-        className="absolute left-4 right-4 bottom-4 z-30"
-        style={{
-          background: 'rgba(255,255,255,0.12)',
-          backdropFilter: 'blur(12px)',
-          padding: 18,
-          borderRadius: 18,
-        }}
-      >
-        <h3 className="text-lg font-medium" style={{ color: '#d590f5', textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
-          Memory
-        </h3>
-        <small className="text-xs text-white/60 block mt-0.5" style={{ textShadow: '1px 1px 1px rgba(0,0,0,0.8)' }}>
-          Pure CSS animation
-        </small>
-      </div>
+
     </div>
   )
 }
@@ -72,11 +57,11 @@ function HorizontalMarquee({ images, onSelect }: { images: string[]; onSelect: (
   return (
     <div className="slider relative overflow-hidden mt-8" style={{ marginTop: '4rem' }}>
       <div
-        className="absolute top-0 left-0 w-30 h-full z-10 pointer-events-none"
+        className="hidden md:block absolute top-0 left-0 w-30 h-full z-10 pointer-events-none"
         style={{ width: 120, background: 'linear-gradient(to right, #090b16, transparent)' }}
       />
       <div
-        className="absolute top-0 right-0 w-30 h-full z-10 pointer-events-none"
+        className="hidden md:block absolute top-0 right-0 w-30 h-full z-10 pointer-events-none"
         style={{ width: 120, background: 'linear-gradient(to left, #090b16, transparent)' }}
       />
 
