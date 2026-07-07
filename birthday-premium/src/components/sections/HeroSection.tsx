@@ -1,5 +1,5 @@
 import { useRef, useEffect, Suspense, useMemo } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { motion } from 'framer-motion'
 import gsap from 'gsap'
 import * as THREE from 'three'
@@ -8,8 +8,12 @@ import { birthdayConfig } from '../../config/birthday'
 import { useLiveAge } from '../../hooks/useLiveAge'
 import { formatBirthDate } from '../../lib/ageCalculator'
 
+let heroVisible = true
+export function setHeroVisible(v: boolean) { heroVisible = v }
+
 function ShootingStars() {
   const count = 3
+  const fc = useRef(0)
   const stars = useMemo(() => Array.from({ length: count }, () => ({
     progress: Math.random(),
     speed: 0.002 + Math.random() * 0.005,
@@ -20,8 +24,13 @@ function ShootingStars() {
   })), [])
 
   const ref = useRef<THREE.Points>(null!)
+  const { invalidate } = useThree()
 
   useFrame(() => {
+    if (!heroVisible) return
+    invalidate()
+    fc.current++
+    if (fc.current % 3 !== 0) return
     const pos = ref.current.geometry.attributes.position.array as Float32Array
     const opacities = ref.current.geometry.attributes.opacity?.array as Float32Array | null
 
@@ -68,6 +77,7 @@ function ShootingStars() {
 
 function Constellations() {
   const ref = useRef<THREE.LineSegments>(null!)
+  const fc = useRef(0)
   const count = 200
 
   const pairs = useMemo(() => {
@@ -104,7 +114,13 @@ function Constellations() {
     return p
   }, [])
 
+  const { invalidate } = useThree()
+
   useFrame((state) => {
+    if (!heroVisible) return
+    invalidate()
+    fc.current++
+    if (fc.current % 4 !== 0) return
     if (ref.current) {
       ref.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.02) * 0.1
     }
@@ -129,8 +145,9 @@ function Constellations() {
 }
 
 function ParticleField() {
-  const count = 1000
+  const count = 300
   const ref = useRef<THREE.Points>(null!)
+  const fc = useRef(0)
   const pos = useMemo(() => {
     const p = new Float32Array(count * 3)
     for (let i = 0; i < count; i++) {
@@ -141,7 +158,13 @@ function ParticleField() {
     return p
   }, [])
 
+  const { invalidate } = useThree()
+
   useFrame((state) => {
+    if (!heroVisible) return
+    invalidate()
+    fc.current++
+    if (fc.current % 2 !== 0) return
     const p = ref.current.geometry.attributes.position.array as Float32Array
     for (let i = 0; i < count; i++) {
       p[i * 3 + 1] += Math.sin(state.clock.elapsedTime * 0.1 + i) * 0.001
@@ -167,6 +190,7 @@ export default function HeroSection() {
   const age = useLiveAge()
 
   useEffect(() => {
+    heroVisible = true
     const ctx = gsap.context(() => {
       gsap.to(glowRef.current, {
         scale: 1.5, opacity: 0.2, duration: 2.5, repeat: -1, yoyo: true, ease: 'sine.inOut',
@@ -175,7 +199,9 @@ export default function HeroSection() {
         y: 10, opacity: 0.3, duration: 1.5, repeat: -1, yoyo: true, ease: 'power1.inOut',
       })
     }, containerRef)
-    return () => ctx.revert()
+    const ob = new IntersectionObserver(([e]) => { heroVisible = e.isIntersecting }, { threshold: 0 })
+    if (containerRef.current) ob.observe(containerRef.current)
+    return () => { ctx.revert(); ob.disconnect() }
   }, [])
 
   return (
@@ -187,7 +213,7 @@ export default function HeroSection() {
 
       <div className="absolute inset-0">
         <Suspense fallback={null}>
-          <Canvas dpr={[1, 1.5]} camera={{ position: [0, 0, 8], fov: 65 }}>
+          <Canvas dpr={[1, 1.5]} frameloop="demand" camera={{ position: [0, 0, 8], fov: 65 }}>
             <ambientLight intensity={0.1} />
             <ParticleField />
             <Constellations />

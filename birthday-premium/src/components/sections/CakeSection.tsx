@@ -1,5 +1,5 @@
 import { useRef, useState, Suspense, useMemo, useCallback, useEffect } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { motion } from 'framer-motion'
 import * as THREE from 'three'
@@ -9,6 +9,8 @@ import { birthdayConfig } from '../../config/birthday'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
 import { soundManager } from '../../lib/sound'
 import { StarIcon, HeartIcon, FlowerIcon } from '../ui/PremiumIcons'
+
+let cakeVisible = true
 
 let micStream: MediaStream | null = null
 let blowCheckId: number | null = null
@@ -89,7 +91,11 @@ function Sprinkles({ cnt=30, r, y }: { cnt:number; r:number; y:number }) {
 
 function Candle({ pos, blown, idx }: { pos:[number,number]; blown:boolean; idx:number }) {
   const mr=useRef<THREE.Mesh>(null!), gr=useRef<THREE.Mesh>(null!), t=useRef(Math.random()*100)
-  useFrame((_,d)=>{t.current+=d
+  const { invalidate } = useThree()
+  useFrame((_,d)=>{
+    if (!cakeVisible) return
+    invalidate()
+    t.current+=d
     if(mr.current&&!blown){
       const f=Math.sin(t.current*18+idx*3)*.15+Math.sin(t.current*11+idx*7)*.1+Math.sin(t.current*7+idx*2)*.08
       mr.current.scale.x=1+f*.2;mr.current.scale.y=1+f*.25
@@ -111,8 +117,11 @@ function PremiumCake3D({blown,onBlow,onSongPlay,playing,detecting}:{blown:boolea
   const grp=useRef<THREE.Group>(null!)
   const cpos=[[0,.55],[.523,.169],[.31,-.455],[-.31,-.455],[-.523,.169]]
   const rt=useRef(0)
+  const { invalidate } = useThree()
 
   useFrame((s,d)=>{
+    if(!cakeVisible)return
+    invalidate()
     if(grp.current){
       rt.current+=d
       grp.current.rotation.y=rt.current*.12
@@ -206,9 +215,17 @@ function SongButton({onClick,playing}:{onClick:()=>void;playing:boolean}) {
 }
 
 export default function CakeSection() {
+  const sectionRef = useRef<HTMLDivElement>(null!)
   const rm=useReducedMotion()
   const[blown,setBlown]=useState(false);const[detecting,setDetecting]=useState(false)
   const[sc,setSc]=useState(false);const[playing,setPlaying]=useState(false)
+
+  useEffect(() => {
+    cakeVisible = true
+    const ob = new IntersectionObserver(([e]) => { cakeVisible = e.isIntersecting }, { threshold: 0 })
+    if (sectionRef.current) ob.observe(sectionRef.current)
+    return () => ob.disconnect()
+  }, [])
 
   const hb=useCallback(()=>{
     if(blown)return;setBlown(true);setDetecting(false)
@@ -250,14 +267,14 @@ export default function CakeSection() {
   </SectionWrapper>
 
   return (
-    <SectionWrapper className="bg-rose-garden min-h-dvh relative" id="cake" transitionType="portal">
+    <div ref={sectionRef}><SectionWrapper className="bg-rose-garden min-h-dvh relative" id="cake" transitionType="portal">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(30)].map((_,i)=><motion.div key={i}
+        {[...Array(30)].map((_,i)=><div key={i}
           className="absolute w-1.5 h-1.5 rounded-full"
           style={{left:`${Math.random()*100}%`,top:`${Math.random()*100}%`,
-            background:`radial-gradient(circle,${['#fcd34d','#f472b6','#fbcfe8','#fff'][i%4]},transparent)`}}
-          animate={{opacity:[0,.6,0],scale:[0,1.5,0]}}
-          transition={{duration:2+Math.random()*4,repeat:Infinity,delay:Math.random()*3,ease:'easeInOut'}} />)}
+            background:`radial-gradient(circle,${['#fcd34d','#f472b6','#fbcfe8','#fff'][i%4]},transparent)`,
+            animation:`float-particle ${2+Math.random()*4}s ease-in-out ${Math.random()*3}s infinite`,
+            willChange:'transform,opacity'}} />)}
       </div>
 
       <div className="relative z-10 text-center mb-8">
@@ -273,7 +290,7 @@ export default function CakeSection() {
         <Suspense fallback={<div className="w-full h-full flex flex-col items-center justify-center gap-3">
           <div className="w-8 h-8 border border-rose-300/30 border-t-rose-300 rounded-full animate-spin" />
           <span className="text-white/20 text-xs font-sans tracking-widest uppercase">Baking your cake...</span></div>}>
-          <Canvas shadows dpr={[1, 1.5]} camera={{position:[0,-.05,3.4],fov:34}}
+          <Canvas shadows dpr={[1, 1.5]} frameloop="demand" camera={{position:[0,-.05,3.4],fov:34}}
             gl={{antialias:true,alpha:true,toneMapping:THREE.ACESFilmicToneMapping,toneMappingExposure:1.4}}
             onCreated={({gl})=>{gl.setClearColor(0x000000,0)}}>
             <ambientLight intensity={.4} />
@@ -302,7 +319,7 @@ export default function CakeSection() {
           </motion.div>)}
         </div>
       </motion.div>}
-    </SectionWrapper>
+    </SectionWrapper></div>
   )
 }
 

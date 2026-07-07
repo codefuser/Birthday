@@ -77,6 +77,7 @@ interface Firefly {
 
 export default function FinalMessage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const canvasAnimRef = useRef<number>(0)
   const audioPlayed = useRef(false)
   const [visible, setVisible] = useState(false)
   const [revealedLines, setRevealedLines] = useState(0)
@@ -163,7 +164,6 @@ export default function FinalMessage() {
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')!
-    let animId: number
     const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight }
     resize(); window.addEventListener('resize', resize)
 
@@ -175,6 +175,11 @@ export default function FinalMessage() {
     })
 
     function animate(time: number) {
+      canvasAnimRef.current = requestAnimationFrame(animate)
+      if (!canvas) return
+      const rect = canvas.getBoundingClientRect()
+      const onScreen = rect.top < window.innerHeight && rect.bottom > 0
+      if (!onScreen) return
       ctx.clearRect(0, 0, canvas!.width, canvas!.height)
       dots.forEach(d => {
         d.a = 0.15 + Math.sin(time * d.sp + d.ph) * 0.35
@@ -183,10 +188,9 @@ export default function FinalMessage() {
         ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0, d.a)})`
         ctx.fill()
       })
-      animId = requestAnimationFrame(animate)
     }
-    animId = requestAnimationFrame(animate)
-    return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize) }
+    canvasAnimRef.current = requestAnimationFrame(animate)
+    return () => { cancelAnimationFrame(canvasAnimRef.current); window.removeEventListener('resize', resize) }
   }, [])
 
   return (
@@ -200,29 +204,26 @@ export default function FinalMessage() {
         transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
       />
 
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ perspective: '500px' }}>
         {bokehLights.map(b => (
           <div key={b.id} className="absolute rounded-full" style={{
             left: `${b.x}%`, top: `${b.y}%`, width: b.s, height: b.s,
             background: `radial-gradient(circle, rgba(252,211,77,${0.015 + Math.random() * 0.025}), transparent)`,
             filter: 'blur(25px)',
-          }}>
-            <motion.div className="w-full h-full rounded-full"
-              animate={{ x: [0, 20, 0, -20, 0], y: [0, -15, 0, 15, 0] }}
-              transition={{ duration: b.d, repeat: Infinity, ease: 'easeInOut' }} />
-          </div>
+            animation: `bokeh-drift ${b.d}s ease-in-out infinite`,
+            willChange: 'transform',
+          }} />
         ))}
       </div>
 
       <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ perspective: '500px' }}>
         {[...Array(3)].map((_, i) => (
-          <motion.div key={i} className="absolute top-0 w-px h-full" style={{
+          <div key={i} className="absolute top-0 w-px h-full" style={{
             left: `${20 + i * 30}%`,
             background: `linear-gradient(180deg, transparent, rgba(252,211,77,${0.005 + i * 0.003}), transparent)`,
             transform: 'rotateX(65deg)',
-          }}
-            animate={{ opacity: [0.05, 0.15, 0.05], scaleY: [0.9, 1.1, 0.9] }}
-            transition={{ duration: 6 + i * 2, repeat: Infinity, ease: 'easeInOut' }} />
+            animation: `beam-pulse ${6 + i * 2}s ease-in-out infinite`,
+          }} />
         ))}
       </div>
 
@@ -485,15 +486,13 @@ export default function FinalMessage() {
           ))}
 
           <div className="absolute inset-0 rounded-[30px] pointer-events-none overflow-hidden" style={{ transform: 'translateZ(-1px)' }}>
-            <motion.div className="absolute -top-10 -left-10 w-40 h-40 rounded-full"
-              style={{ background: 'radial-gradient(circle, rgba(252,211,77,0.03), transparent)', filter: 'blur(20px)' }}
-              animate={{ x: [0, 15, 0, -15, 0], y: [0, -10, 0, 10, 0] }}
-              transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+            <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full"
+              style={{ background: 'radial-gradient(circle, rgba(252,211,77,0.03), transparent)', filter: 'blur(20px)',
+                animation: 'glow-drift-1 12s ease-in-out infinite' }}
             />
-            <motion.div className="absolute -bottom-10 -right-10 w-48 h-48 rounded-full"
-              style={{ background: 'radial-gradient(circle, rgba(244,63,94,0.02), transparent)', filter: 'blur(30px)' }}
-              animate={{ x: [0, -15, 0, 15, 0], y: [0, 10, 0, -10, 0] }}
-              transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+            <div className="absolute -bottom-10 -right-10 w-48 h-48 rounded-full"
+              style={{ background: 'radial-gradient(circle, rgba(244,63,94,0.02), transparent)', filter: 'blur(30px)',
+                animation: 'glow-drift-2 10s ease-in-out infinite' }}
             />
           </div>
         </motion.div>

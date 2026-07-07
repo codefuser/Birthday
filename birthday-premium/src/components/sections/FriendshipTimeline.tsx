@@ -26,15 +26,13 @@ export default function FriendshipTimeline() {
   return (
     <SectionWrapper className="bg-aurora relative" id="timeline" transitionType="particleDissolve">
       <div className="absolute inset-0 overflow-hidden">
-        <motion.div
+        <div
           className="absolute -top-20 -left-20 w-96 h-96 rounded-full bg-emerald-500/5 blur-[100px]"
-          animate={{ x: [0, 100, 0], y: [0, 50, 0] }}
-          transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
+          style={{ animation: 'glow-drift-1 15s ease-in-out infinite' }}
         />
-        <motion.div
+        <div
           className="absolute -bottom-20 -right-20 w-80 h-80 rounded-full bg-rose-500/5 blur-[100px]"
-          animate={{ x: [0, -80, 0], y: [0, -50, 0] }}
-          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+          style={{ animation: 'glow-drift-2 12s ease-in-out infinite' }}
         />
       </div>
 

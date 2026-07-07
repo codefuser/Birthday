@@ -1,5 +1,5 @@
 import { useRef, useMemo } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 
 interface FloatingParticlesProps {
@@ -16,6 +16,8 @@ export default function FloatingParticles({
   speed = 0.2,
 }: FloatingParticlesProps) {
   const meshRef = useRef<THREE.Points>(null!)
+  const fcRef = useRef(0)
+  const { invalidate } = useThree()
 
   const positions = useMemo(() => {
     const pos = new Float32Array(count * 3)
@@ -36,6 +38,9 @@ export default function FloatingParticles({
   }, [count, speed])
 
   useFrame(() => {
+    fcRef.current++
+    if (fcRef.current % 3 !== 0) return
+    invalidate()
     const positionsArr = meshRef.current.geometry.attributes.position.array as Float32Array
     for (let i = 0; i < count; i++) {
       positionsArr[i * 3] += velocities[i].x

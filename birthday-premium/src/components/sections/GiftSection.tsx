@@ -319,12 +319,12 @@ export default function GiftSection() {
     <SectionWrapper className="bg-golden-dust relative" id="gifts" transitionType="starWarp">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(15)].map((_, i) => (
-          <motion.div
+          <div
             key={i}
             className="absolute w-1 h-1 rounded-full"
-            style={{ left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`, background: '#fbbf2440' }}
-            animate={{ y: [0, -30, 0], opacity: [0, 0.5, 0] }}
-            transition={{ duration: 3 + Math.random() * 2, repeat: Infinity, delay: Math.random() * 3 }}
+            style={{ left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`, background: '#fbbf2440',
+              animation: `float-gift ${3 + Math.random() * 2}s ease-in-out ${Math.random() * 3}s infinite`,
+              willChange: 'transform,opacity' }}
           />
         ))}
       </div>

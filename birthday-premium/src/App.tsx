@@ -126,14 +126,19 @@ export default function App() {
       syncScroll: true,
     } as any
     const lenis = new Lenis(lenisOptions)
+    let rafId = 0
+    let hidden = false
 
     function raf(time: number) {
-      lenis.raf(time)
-      requestAnimationFrame(raf)
+      if (!hidden) lenis.raf(time)
+      rafId = requestAnimationFrame(raf)
     }
-    requestAnimationFrame(raf)
+    rafId = requestAnimationFrame(raf)
 
-    return () => { lenis.destroy() }
+    const onVis = () => { hidden = document.hidden }
+    document.addEventListener('visibilitychange', onVis)
+
+    return () => { cancelAnimationFrame(rafId); lenis.destroy(); document.removeEventListener('visibilitychange', onVis) }
   }, [reducedMotion])
 
   return (
