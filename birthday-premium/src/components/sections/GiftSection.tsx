@@ -1,26 +1,10 @@
-import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
+import { useState, useCallback, useRef, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import SectionWrapper from '../ui/SectionWrapper'
 import AnimatedText from '../ui/AnimatedText'
 import { soundManager } from '../../lib/sound'
-import { useLiveAge } from '../../hooks/useLiveAge'
-
-interface GiftData {
-  id: number
-  title: string
-  color: string
-  verse: string
-  ref: string
-}
-
-const gifts: GiftData[] = [
-  { id: 1, title: 'Joy', color: '#f43f5e', ref: 'எரேமியா 29:11', verse: '"உங்களுக்காக நான் நினைக்கிற நினைவுகளை அறிவேன் என்று கர்த்தர் சொல்லுகிறார். அவைகள் தீமைக்கேதுவான நினைவுகள் அல்ல, சமாதானத்திற்கேதுவான நினைவுகள். உங்கள் எதிர்காலத்திற்கும் நம்பிக்கைக்கும் உரியவைகள்."' },
-  { id: 2, title: 'Love', color: '#d946ef', ref: 'சங்கீதம் 20:4', verse: '"உன் இருதயத்தின் விருப்பத்தின்படி அவர் உனக்குக் கொடுத்து, உன் ஆலோசனைகளையெல்லாம் நிறைவேற்றுவாராக."' },
-  { id: 3, title: 'Success', color: '#fbbf24', ref: 'பிலிப்பியர் 4:13', verse: '"எனக்குப் பலனளிக்கிற கிறிஸ்துவினாலே எல்லாவற்றையும் செய்ய எனக்குப் பெலன் உண்டு."' },
-  { id: 4, title: 'Happiness', color: '#34d399', ref: 'எண்ணாகமம் 6:24-26', verse: '"கர்த்தர் உன்னை ஆசீர்வதித்து உன்னைக் காப்பாராக. கர்த்தர் தமது முகத்தை உன்மேல் பிரகாசிக்கப்பண்ணி உனக்கு கிருபை செய்வாராக. கர்த்தர் தமது முகத்தை உன்மேல் உயர்த்தி உனக்கு சமாதானம் அருள்வாராக."' },
-  { id: 5, title: 'Prosperity', color: '#60a5fa', ref: 'நீதிமொழிகள் 3:5-6', verse: '"உன் முழு இருதயத்தோடும் கர்த்தர்மேல் நம்பிக்கையாயிருந்து, உன் சுய புத்தியின்மேல் சாய்ந்துகொள்ளாதே. உன் வழிகளிலெல்லாம் அவரை நினைத்துக்கொள்; அப்பொழுது அவர் உன் பாதைகளைச் செவ்வைப்படுத்துவார்."' },
-  { id: 6, title: 'Adventure', color: '#fb923c', ref: 'சங்கீதம் 121:8', verse: '"கர்த்தர் உன் புறப்படுதலையும் உன் வருதலையும் இதுமுதல் என்றென்றைக்கும் காத்துக்கொள்வார்."' },
-]
+import { gifts, GiftData } from '../../lib/giftConfig'
+import { GiftPopup } from '../gifts/GiftPopup'
 
 function playChime() {
   try {
@@ -210,104 +194,6 @@ function GiftBox({
           {gift.title}
         </span>
       </motion.button>
-    </motion.div>
-  )
-}
-
-function GiftPopup({ gift, onClose }: { gift: GiftData; onClose: () => void }) {
-  const overlayRef = useRef<HTMLDivElement>(null)
-  const age = useLiveAge()
-
-  useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', handler)
-    return () => {
-      document.body.style.overflow = ''
-      window.removeEventListener('keydown', handler)
-    }
-  }, [onClose])
-
-  return (
-    <motion.div
-      ref={overlayRef}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
-      onClick={(e) => { if (e.target === overlayRef.current) onClose() }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.7)' }}
-    >
-      <motion.div
-        initial={{ scale: 0.85, opacity: 0, filter: 'blur(8px)' }}
-        animate={{ scale: 1, opacity: 1, filter: 'blur(0px)' }}
-        exit={{ scale: 0.85, opacity: 0, filter: 'blur(8px)' }}
-        transition={{ type: 'spring', stiffness: 120, damping: 18, mass: 0.8 }}
-        onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-lg rounded-3xl overflow-hidden border border-white/15"
-        style={{ background: 'linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))', backdropFilter: 'blur(24px)' }}
-      >
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all duration-200"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
-        </button>
-
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full" style={{ background: `radial-gradient(circle, ${gift.color}30, transparent 70%)`, filter: 'blur(30px)' }} />
-
-        <div className="relative p-6 md:p-10 text-center">
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.15, duration: 0.5 }}
-          >
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-5 border border-white/10" style={{ background: `${gift.color}20` }}>
-              <span className="text-2xl">🎁</span>
-            </div>
-
-            <h2 className="text-xl md:text-2xl font-heading text-white mb-1">
-              On Your {age.years}<sup>th</sup> Birthday
-            </h2>
-
-            <p className="text-xs text-white/30 font-sans mb-3 tracking-wider">
-              {age.years} Years · {age.totalMonths} Total Months
-            </p>
-
-            <div className="w-12 h-px mx-auto my-4 rounded-full" style={{ background: `linear-gradient(90deg, transparent, ${gift.color}, transparent)` }} />
-
-            <h3 className="text-lg md:text-xl font-heading mb-2" style={{ color: gift.color }}>
-              {gift.title}
-            </h3>
-
-            <p className="text-xs md:text-sm text-white/40 font-sans mb-4 tracking-wider">{gift.ref}</p>
-
-            <p className="text-sm md:text-base text-white/80 font-sans leading-relaxed" style={{ fontFamily: "'Noto Sans Tamil', 'Hind Vadodara', sans-serif" }}>
-              {gift.verse}
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="flex justify-center gap-3 mt-6"
-          >
-            {[...Array(3)].map((_, i) => (
-              <motion.span
-                key={i}
-                className="text-sm"
-                style={{ color: gift.color }}
-                animate={{ y: [0, -4, 0], opacity: [0.3, 0.8, 0.3] }}
-                transition={{ duration: 1.5, delay: i * 0.3, repeat: Infinity }}
-              >
-                ✦
-              </motion.span>
-            ))}
-          </motion.div>
-        </div>
-      </motion.div>
     </motion.div>
   )
 }
